@@ -61,9 +61,13 @@ let check (globals, functions) =
      { typ = Void; fname = "printbig"; formals = [(Int, "x")];
        locals = []; body = [] }
 
+        (StringMap.add "print_float"
+     { typ = Void; fname = "print_float"; formals = [(Float, "x")];
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] })))
+       locals = []; body = [] }))))
    in
      
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
@@ -120,10 +124,10 @@ let check (globals, functions) =
               string_of_typ t2 ^ " in " ^ string_of_expr e))
         )
       | Unop(op, e) as ex -> let t = expr e in
-	 (match op with
-	   Neg when t = Int -> Int
-   | Neg when t = Float -> Float
-	 | Not when t = Bool -> Bool
+	     (match op with
+	         Neg when t = Int -> Int
+         | Neg when t = Float -> Float
+	       | Not when t = Bool -> Bool
          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
 	  		   string_of_typ t ^ " in " ^ string_of_expr ex)))
       | Noexpr -> Void

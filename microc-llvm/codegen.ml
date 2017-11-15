@@ -24,7 +24,7 @@ let translate (globals, functions) =
   and i32_t  = L.i32_type  context
   and i8_t   = L.i8_type   context
   and i1_t   = L.i1_type   context
-  and f_t    = L.float_type context
+  and f_t    = L.double_type context
   and void_t = L.void_type context
   in
 
@@ -68,6 +68,7 @@ let translate (globals, functions) =
 
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
+    and float_format_str = L.build_global_stringptr "%f\n" "fmt" builder
     and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
     in
     
@@ -102,42 +103,46 @@ let translate (globals, functions) =
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id s -> L.build_load (lookup s) s builder
       | A.Binop (e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
-      if (L.type_of e1' = f_t || L.type_of e2' = f_t) then
-  	   (match op with
-  	    A.Add     -> L.build_fadd
-  	  | A.Sub     -> L.build_fsub
-  	  | A.Mult    -> L.build_fmul
-      | A.Div     -> L.build_fdiv
-  	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
-  	  | A.Neq     -> L.build_fcmp L.Fcmp.One
-  	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
-  	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
-  	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
-  	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
-      | _ -> raise (Failure ("operator not supported for operand"))
-  	  ) e1' e2' "tmp" builder
-      else
-        (match op with
-        A.Add     -> L.build_add
-      | A.Sub     -> L.build_sub
-      | A.Mult    -> L.build_mul
-      | A.Div     -> L.build_sdiv
-      | A.And     -> L.build_and
-      | A.Or      -> L.build_or
-      | A.Equal   -> L.build_icmp L.Icmp.Eq
-      | A.Neq     -> L.build_icmp L.Icmp.Ne
-      | A.Less    -> L.build_icmp L.Icmp.Slt
-      | A.Leq     -> L.build_icmp L.Icmp.Sle
-      | A.Greater -> L.build_icmp L.Icmp.Sgt
-      | A.Geq     -> L.build_icmp L.Icmp.Sge
-        ) e1' e2' "tmp" builder
+	     let e1' = expr builder e1
+	     and e2' = expr builder e2 in
+        if (L.type_of e1' = f_t || L.type_of e2' = f_t) then
+  	       (match op with
+      	    A.Add     -> L.build_fadd
+      	  | A.Sub     -> L.build_fsub
+      	  | A.Mult    -> L.build_fmul
+          | A.Div     -> L.build_fdiv
+      	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+      	  | A.Neq     -> L.build_fcmp L.Fcmp.One
+      	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
+      	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
+      	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
+      	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
+          | _ -> raise (Failure ("operator not supported for operand"))
+      	  ) e1' e2' "tmp" builder
+        else
+          (match op with
+            A.Add     -> L.build_add
+          | A.Sub     -> L.build_sub
+          | A.Mult    -> L.build_mul
+          | A.Div     -> L.build_sdiv
+          | A.And     -> L.build_and
+          | A.Or      -> L.build_or
+          | A.Equal   -> L.build_icmp L.Icmp.Eq
+          | A.Neq     -> L.build_icmp L.Icmp.Ne
+          | A.Less    -> L.build_icmp L.Icmp.Slt
+          | A.Leq     -> L.build_icmp L.Icmp.Sle
+          | A.Greater -> L.build_icmp L.Icmp.Sgt
+          | A.Geq     -> L.build_icmp L.Icmp.Sge
+            ) e1' e2' "tmp" builder
       | A.Unop(op, e) ->
-	  let e' = expr builder e in
-	  (match op with
-	    A.Neg     -> L.build_neg
-          | A.Not     -> L.build_not) e' "tmp" builder
+	     let e' = expr builder e in
+	       (match op with
+	          A.Neg     -> 
+              (if (L.type_of e' = f_t) then
+                L.build_fneg
+              else
+                L.build_neg)
+            | A.Not     -> L.build_not) e' "tmp" builder
       | A.Assign (s, e) -> let e' = expr builder e in
 	                   ignore (L.build_store e' (lookup s) builder); e'
       | A.Call ("print", [e]) | A.Call ("printb", [e]) ->
@@ -145,6 +150,9 @@ let translate (globals, functions) =
 	    "printf" builder
       | A.Call ("printbig", [e]) ->
     L.build_call printbig_func [| (expr builder e) |] "printbig" builder
+      | A.Call ("print_float", [e]) ->
+        L.build_call printf_func [| float_format_str ; (expr builder e) |]
+        "printf" builder
       | A.Call ("print_string", [e]) ->
 	  L.build_call printf_func [| string_format_str ; (expr builder e) |]
 	  "printf" builder

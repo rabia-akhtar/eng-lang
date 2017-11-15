@@ -1,8 +1,7 @@
 int main() {
   float a;
-  float b;
-
   a = 1.2;
-  b = 2.3 + 1.2;
+ 
+  print_float(a);
   return 0;
 }
