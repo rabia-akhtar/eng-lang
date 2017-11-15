@@ -39,6 +39,8 @@ rule token = parse
 | "false"  { FALSE }
 | "string" { STRING }
 | ['0'-'9']+ as lxm { NUM_LIT(int_of_string lxm) }
+| ['0'-'9']+'.'['0'-'9']* | ['0'-'9']*'.'['0'-'9']+ 
+	as lxm { FLOAT_LIT(float_of_string lxm)}
 | '"' (([^ '"'] | "\\\"")* as strlit) '"' { STRING_LIT(strlit) } 
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }
