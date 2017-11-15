@@ -57,6 +57,7 @@ formal_list:
 
 typ:
     INT { Int }
+  | FLOAT { Float }
   | BOOL { Bool }
   | VOID { Void }
   | STRING { String }
@@ -90,7 +91,7 @@ expr_opt:
 expr:
     NUM_LIT          { NumLit($1) }
   | FLOAT_LIT        { FloatLit($1) }
-  | STRING_LIT       { StringLit($1)}
+  | STRING_LIT       { StringLit($1) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }

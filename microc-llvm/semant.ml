@@ -113,8 +113,6 @@ let check (globals, functions) =
          | Add | Sub | Mult | Div when t1 = Float && t2 = Float -> Float
 	       | Equal | Neq when t1 = t2 -> Bool
 	       | Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
-         | Less | Leq | Greater | Geq when t1 = Int && t2 = Float -> Bool
-         | Less | Leq | Greater | Geq when t1 = Float && t2 = Int -> Bool
          | Less | Leq | Greater | Geq when t1 = Float && t2 = Float -> Bool
 	       | And | Or when t1 = Bool && t2 = Bool -> Bool
          | _ -> raise (Failure ("illegal binary operator " ^
@@ -124,7 +122,7 @@ let check (globals, functions) =
       | Unop(op, e) as ex -> let t = expr e in
 	 (match op with
 	   Neg when t = Int -> Int
-     Neg when t = Float -> Float
+   | Neg when t = Float -> Float
 	 | Not when t = Bool -> Bool
          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
 	  		   string_of_typ t ^ " in " ^ string_of_expr ex)))

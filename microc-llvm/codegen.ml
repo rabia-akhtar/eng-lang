@@ -104,8 +104,8 @@ let translate (globals, functions) =
       | A.Binop (e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
-    if (L.type_of e1' = f_t || L.type_of e2' = f_t)
-  	 (match op with
+      if (L.type_of e1' = f_t || L.type_of e2' = f_t) then
+  	   (match op with
   	    A.Add     -> L.build_fadd
   	  | A.Sub     -> L.build_fsub
   	  | A.Mult    -> L.build_fmul
@@ -116,9 +116,10 @@ let translate (globals, functions) =
   	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
   	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
   	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
+      | _ -> raise (Failure ("operator not supported for operand"))
   	  ) e1' e2' "tmp" builder
-    else
-     (match op with
+      else
+        (match op with
         A.Add     -> L.build_add
       | A.Sub     -> L.build_sub
       | A.Mult    -> L.build_mul
@@ -131,7 +132,7 @@ let translate (globals, functions) =
       | A.Leq     -> L.build_icmp L.Icmp.Sle
       | A.Greater -> L.build_icmp L.Icmp.Sgt
       | A.Geq     -> L.build_icmp L.Icmp.Sge
-      ) e1' e2' "tmp" builder
+        ) e1' e2' "tmp" builder
       | A.Unop(op, e) ->
 	  let e' = expr builder e in
 	  (match op with
