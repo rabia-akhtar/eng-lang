@@ -64,7 +64,7 @@ let translate (globals, functions) =
   let write_t = L.function_type i32_t [| L.pointer_type i8_t; p_t |] in 
   let write_func = L.declare_function "fputs" write_t the_module in
 
-  (* Declare the built-in fgets() function as read() *)
+  (* Declare the built-in fread() function as read() *)
   let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
   let read_func = L.declare_function "fread" read_t the_module in
 
