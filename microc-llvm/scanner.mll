@@ -39,6 +39,7 @@ rule token = parse
 | "true"   { TRUE }
 | "false"  { FALSE }
 | "string" { STRING }
+| "file_ptr" { STRING }
 | ['0'-'9']+ as lxm { NUM_LIT(int_of_string lxm) }
 | ['0'-'9']+'.'['0'-'9']* | ['0'-'9']*'.'['0'-'9']+ 
 	as lxm { FLOAT_LIT(float_of_string lxm)}

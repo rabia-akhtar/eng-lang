@@ -168,7 +168,7 @@ which "$LLI" >> $globallog || LLIFail
 if [ ! -f printbig.o ]
 then
     echo "Could not find printbig.o"
-    echo "Try \"make printbig.o\""
+    echo "Try \"make printbig\""
     exit 1
 fi
 

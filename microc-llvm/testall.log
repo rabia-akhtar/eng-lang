@@ -256,6 +256,14 @@ cc -o test-local2.exe test-local2.s printbig.o
 diff -b test-local2.out tests/test-local2.out > test-local2.diff
 ###### SUCCESS
 
+###### Testing test-open1
+./english.native < tests/test-open1.ell > test-open1.ll
+/usr/local/opt/llvm/bin/llc test-open1.ll > test-open1.s
+cc -o test-open1.exe test-open1.s printbig.o
+./test-open1.exe
+diff -b test-open1.out tests/test-open1.out > test-open1.diff
+###### SUCCESS
+
 ###### Testing test-ops1
 ./english.native < tests/test-ops1.ell > test-ops1.ll
 /usr/local/opt/llvm/bin/llc test-ops1.ll > test-ops1.s
@@ -288,6 +296,11 @@ cc -o test-printstring.exe test-printstring.s printbig.o
 diff -b test-printstring.out tests/test-printstring.out > test-printstring.diff
 ###### SUCCESS
 
+###### Testing test-read1
+./english.native < tests/test-read1.ell > test-read1.ll
+Fatal error: exception Parsing.Parse_error
+###### FAILED
+
 ###### Testing test-var1
 ./english.native < tests/test-var1.ell > test-var1.ll
 /usr/local/opt/llvm/bin/llc test-var1.ll > test-var1.s
@@ -318,6 +331,14 @@ diff -b test-while1.out tests/test-while1.out > test-while1.diff
 cc -o test-while2.exe test-while2.s printbig.o
 ./test-while2.exe
 diff -b test-while2.out tests/test-while2.out > test-while2.diff
+###### SUCCESS
+
+###### Testing test-write1
+./english.native < tests/test-write1.ell > test-write1.ll
+/usr/local/opt/llvm/bin/llc test-write1.ll > test-write1.s
+cc -o test-write1.exe test-write1.s printbig.o
+./test-write1.exe
+diff -b test-write1.out tests/test-write1.out > test-write1.diff
 ###### SUCCESS
 
 ###### Testing fail-assign1

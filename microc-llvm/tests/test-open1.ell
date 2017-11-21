@@ -1,0 +1,7 @@
+int main(){
+   file_ptr fp;
+   fp = open("hello.txt", "wb");
+   close(fp);
+   print_string("done");
+   return(0);
+}

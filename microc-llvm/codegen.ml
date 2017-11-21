@@ -23,6 +23,7 @@ let translate (globals, functions) =
   let the_module = L.create_module context "English"
   and i32_t  = L.i32_type  context
   and i8_t   = L.i8_type   context
+  and p_t  = L.pointer_type (L.i8_type (context))
   and i1_t   = L.i1_type   context
   and f_t    = L.double_type context
   and void_t = L.void_type context
@@ -33,7 +34,7 @@ let translate (globals, functions) =
     | A.Float -> f_t
     | A.Bool -> i1_t
     | A.Void -> void_t
-    | A.String -> i8_t
+    | A.String -> p_t
     in
 
   (* Declare each global variable; remember its value in a map *)
@@ -50,6 +51,22 @@ let translate (globals, functions) =
   (* Declare the built-in printbig() function *)
   let printbig_t = L.function_type i32_t [| i32_t |] in
   let printbig_func = L.declare_function "printbig" printbig_t the_module in
+
+  (* Declare the built-in open() function *)
+  let open_t = L.function_type p_t [| L.pointer_type i8_t; L.pointer_type i8_t |] in
+  let open_func = L.declare_function "fopen" open_t the_module in
+
+  (* Declare the built-in close() function *)
+  let close_t = L.function_type i32_t [| p_t |] in
+  let close_func = L.declare_function "fclose" close_t the_module in
+   
+  (* Declare the built-in fputs() function as write() *)
+  let write_t = L.function_type i32_t [| L.pointer_type i8_t; p_t |] in 
+  let write_func = L.declare_function "fputs" write_t the_module in
+
+  (* Declare the built-in fgets() function as read() *)
+  let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
+  let read_func = L.declare_function "fread" read_t the_module in
 
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
@@ -150,6 +167,14 @@ let translate (globals, functions) =
 	    "printf" builder
       | A.Call ("printbig", [e]) ->
     L.build_call printbig_func [| (expr builder e) |] "printbig" builder
+      | A.Call("open", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+            L.build_call open_func (Array.of_list x) "fopen" builder
+      | A.Call("close", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+            L.build_call close_func (Array.of_list x) "fclose" builder
+      | A.Call ("read", [e]) ->
+      L.build_call read_func [| (expr builder e) |] "fread" builder
+      | A.Call("write", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+            L.build_call write_func (Array.of_list x) "fputs" builder
       | A.Call ("print_float", [e]) ->
         L.build_call printf_func [| float_format_str ; (expr builder e) |]
         "printf" builder

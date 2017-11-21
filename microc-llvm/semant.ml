@@ -1,4 +1,4 @@
-(* Semantic checking for the MicroC compiler *)
+(* Semantic checking for the ELL compiler *)
 
 open Ast
 
@@ -65,9 +65,28 @@ let check (globals, functions) =
      { typ = Void; fname = "print_float"; formals = [(Float, "x")];
        locals = []; body = [] }
 
+       (StringMap.add "open"
+     { typ = String; fname = "open"; formals = 
+     [(String, "x"); (String, "y")]; locals = []; body = []}
+
+       (StringMap.add "close"
+     { typ = Void; fname = "close"; formals = 
+     [(String, "x")]; locals = []; body = []}
+
+       (StringMap.add "read"
+     { typ = Int; fname = "read"; formals = 
+     [(String, "a"); (Int, "b"); (Int, "c"); (String, "d")];
+       locals = []; body = [] }
+
+       (StringMap.add "write"
+     { typ = Int; fname = "write"; formals = 
+     [(String, "x"); (String, "y")]; 
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] }))))
+       locals = []; body = [] }))))))))
+
    in
      
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
