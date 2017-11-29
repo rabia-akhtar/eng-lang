@@ -6,9 +6,11 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
 type uop = Neg | Not
 
 type typ = Int
+    | Float
     | Bool
     | Void
     | String
+    | Struct of string
 
 
 type bind = typ * string
@@ -16,6 +18,7 @@ type bind = typ * string
 type expr =
     (* Literal of int *)
     NumLit of int
+  | FloatLit of float
   | BoolLit of bool
   | StringLit of string
   | Id of string
@@ -41,7 +44,12 @@ type func_decl = {
     body : stmt list;
   }
 
-type program = bind list * func_decl list
+type struct_decl = {
+    sname: string;
+    sformals: bind list;
+ }
+
+type program = bind list * func_decl list * struct_decl list 
 
 (* Pretty-printing functions *)
 
@@ -65,6 +73,7 @@ let string_of_uop = function
 
 let rec string_of_expr = function
     NumLit(l) -> string_of_int l
+  | FloatLit(f) -> string_of_float f
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | StringLit(s) -> s
@@ -92,9 +101,11 @@ let rec string_of_stmt = function
 
 let string_of_typ = function
   Int -> "int"
+  | Float -> "float"
   | Bool -> "bool"
   | Void -> "void"
   | String -> "string"
+  | Struct(id) -> "struct" ^ id
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
@@ -106,6 +117,10 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
 
-let string_of_program (vars, funcs) =
+let string_of_sdecl sdecl =
+ "struct " ^ sdecl.sname ^ String.concat "{\n" (List.map string_of_vdecl sdecl.sformals) ^ "\n}\n"
+
+let string_of_program (vars, funcs, structs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
-  String.concat "\n" (List.map string_of_fdecl funcs)
+  String.concat "\n" (List.map string_of_fdecl funcs) ^ "\n" ^
+  String.concat "\n" (List.map string_of_sdecl structs)

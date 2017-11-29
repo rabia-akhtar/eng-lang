@@ -1,4 +1,4 @@
-(* Semantic checking for the MicroC compiler *)
+(* Semantic checking for the ELL compiler *)
 
 open Ast
 
@@ -9,7 +9,7 @@ module StringMap = Map.Make(String)
 
    Check each global variable, then check each function *)
 
-let check (globals, functions) =
+let check (globals, functions, structs) =
 
   (* Raise an exception if the given list has a duplicate *)
   let report_duplicate exceptf list =
@@ -61,9 +61,32 @@ let check (globals, functions) =
      { typ = Void; fname = "printbig"; formals = [(Int, "x")];
        locals = []; body = [] }
 
+        (StringMap.add "print_float"
+     { typ = Void; fname = "print_float"; formals = [(Float, "x")];
+       locals = []; body = [] }
+
+       (StringMap.add "open"
+     { typ = String; fname = "open"; formals = 
+     [(String, "x"); (String, "y")]; locals = []; body = []}
+
+       (StringMap.add "close"
+     { typ = Void; fname = "close"; formals = 
+     [(String, "x")]; locals = []; body = []}
+
+       (StringMap.add "read"
+     { typ = Int; fname = "read"; formals = 
+     [(String, "a"); (Int, "b"); (Int, "c"); (String, "d")];
+       locals = []; body = [] }
+
+       (StringMap.add "write"
+     { typ = Int; fname = "write"; formals = 
+     [(String, "x"); (String, "y")]; 
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] })))
+       locals = []; body = [] }))))))))
+
    in
      
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
@@ -72,6 +95,14 @@ let check (globals, functions) =
 
   let function_decl s = try StringMap.find s function_decls
        with Not_found -> raise (Failure ("unrecognized function " ^ s))
+  in
+
+  let struct_decls = List.fold_left (fun m st -> StringMap.add st.sname st m) 
+                          StringMap.empty structs
+  in
+  
+  let struct_decl s = try StringMap.find s struct_decls
+      with Not_found -> raise (Failure ("unrecognized struct" ^ s))
   in
 
   let _ = function_decl "main" in (* Ensure "main" is defined *)
@@ -90,6 +121,8 @@ let check (globals, functions) =
     report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
       (List.map snd func.locals);
 
+
+
     (* Type of each variable (global, formal, or local *)
     let symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m)
 	StringMap.empty (globals @ func.formals @ func.locals )
@@ -103,23 +136,27 @@ let check (globals, functions) =
     (* Return the type of an expression or throw an exception *)
     let rec expr = function
 	  NumLit _ -> Int
+      | FloatLit _ -> Float
       | BoolLit _ -> Bool
       | StringLit _ -> String
       | Id s -> type_of_identifier s
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
-	(match op with
-          Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
-	| Equal | Neq when t1 = t2 -> Bool
-	| Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
-	| And | Or when t1 = Bool && t2 = Bool -> Bool
-        | _ -> raise (Failure ("illegal binary operator " ^
+	       (match op with
+           Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
+         | Add | Sub | Mult | Div when t1 = Float && t2 = Float -> Float
+	       | Equal | Neq when t1 = t2 -> Bool
+	       | Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
+         | Less | Leq | Greater | Geq when t1 = Float && t2 = Float -> Bool
+	       | And | Or when t1 = Bool && t2 = Bool -> Bool
+         | _ -> raise (Failure ("illegal binary operator " ^
               string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
               string_of_typ t2 ^ " in " ^ string_of_expr e))
         )
       | Unop(op, e) as ex -> let t = expr e in
-	 (match op with
-	   Neg when t = Int -> Int
-	 | Not when t = Bool -> Bool
+	     (match op with
+	         Neg when t = Int -> Int
+         | Neg when t = Float -> Float
+	       | Not when t = Bool -> Bool
          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
 	  		   string_of_typ t ^ " in " ^ string_of_expr ex)))
       | Noexpr -> Void

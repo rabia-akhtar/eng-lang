@@ -6,8 +6,8 @@
 #  Compile and check the error of each expected-to-fail test
 
 # Path to the LLVM interpreter
-LLI="lli"
-#LLI="/usr/local/opt/llvm/bin/lli"
+#LLI="lli"
+LLI="/usr/local/opt/llvm/bin/lli"
 
 # Path to the LLVM compiler
 LLC="/usr/local/opt/llvm/bin/llc"
@@ -31,7 +31,7 @@ globalerror=0
 keep=0
 
 Usage() {
-    echo "Usage: testall.sh [options] [.mc files]"
+    echo "Usage: testall.sh [options] [.ell files]"
     echo "-k    Keep intermediate files"
     echo "-h    Print this help"
     exit 1
@@ -80,8 +80,8 @@ RunFail() {
 Check() {
     error=0
     basename=`echo $1 | sed 's/.*\\///
-                             s/.mc//'`
-    reffile=`echo $1 | sed 's/.mc$//'`
+                             s/.ell//'`
+    reffile=`echo $1 | sed 's/.ell$//'`
     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
 
     echo -n "$basename..."
@@ -115,8 +115,8 @@ Check() {
 CheckFail() {
     error=0
     basename=`echo $1 | sed 's/.*\\///
-                             s/.mc//'`
-    reffile=`echo $1 | sed 's/.mc$//'`
+                             s/.ell//'`
+    reffile=`echo $1 | sed 's/.ell$//'`
     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
 
     echo -n "$basename..."
@@ -168,7 +168,7 @@ which "$LLI" >> $globallog || LLIFail
 if [ ! -f printbig.o ]
 then
     echo "Could not find printbig.o"
-    echo "Try \"make printbig.o\""
+    echo "Try \"make printbig\""
     exit 1
 fi
 
@@ -176,7 +176,7 @@ if [ $# -ge 1 ]
 then
     files=$@
 else
-    files="tests/test-*.mc tests/fail-*.mc"
+    files="tests/test-*.ell tests/fail-*.ell"
 fi
 
 for file in $files

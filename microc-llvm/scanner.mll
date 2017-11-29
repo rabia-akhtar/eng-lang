@@ -33,12 +33,17 @@ rule token = parse
 | "while"  { WHILE }
 | "return" { RETURN }
 | "int"    { INT }
+| "float"  { FLOAT }
 | "bool"   { BOOL }
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }
 | "string" { STRING }
+| "file_ptr" { STRING }
+| "struct" { STRUCT }
 | ['0'-'9']+ as lxm { NUM_LIT(int_of_string lxm) }
+| ['0'-'9']+'.'['0'-'9']* | ['0'-'9']*'.'['0'-'9']+ 
+	as lxm { FLOAT_LIT(float_of_string lxm)}
 | '"' (([^ '"'] | "\\\"")* as strlit) '"' { STRING_LIT(strlit) } 
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }

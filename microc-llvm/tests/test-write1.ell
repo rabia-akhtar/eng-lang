@@ -1,0 +1,8 @@
+int main(){
+   file_ptr fp;
+   fp = open("test-write.txt", "wb");
+   write("Testing Write", fp);
+   close(fp);
+   print_string("done");
+   return(0);
+}

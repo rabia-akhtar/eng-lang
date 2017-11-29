@@ -18,20 +18,24 @@ module A = Ast
 module StringMap = Map.Make(String)
 module String = String
 
-let translate (globals, functions) =
+let translate (globals, functions, structs) =
   let context = L.global_context () in
   let the_module = L.create_module context "English"
   and i32_t  = L.i32_type  context
   and i8_t   = L.i8_type   context
+  and p_t  = L.pointer_type (L.i8_type (context))
   and i1_t   = L.i1_type   context
+  and f_t    = L.double_type context
   and void_t = L.void_type context
-  in
+  and struct_t id = L.named_struct_type context id in
 
   let ltype_of_typ = function
       A.Int -> i32_t
+    | A.Float -> f_t
     | A.Bool -> i1_t
     | A.Void -> void_t
-    | A.String -> i8_t
+    | A.String -> p_t
+    | A.Struct id -> struct_t id 
     in
 
   (* Declare each global variable; remember its value in a map *)
@@ -48,6 +52,22 @@ let translate (globals, functions) =
   (* Declare the built-in printbig() function *)
   let printbig_t = L.function_type i32_t [| i32_t |] in
   let printbig_func = L.declare_function "printbig" printbig_t the_module in
+
+  (* Declare the built-in open() function *)
+  let open_t = L.function_type p_t [| L.pointer_type i8_t; L.pointer_type i8_t |] in
+  let open_func = L.declare_function "fopen" open_t the_module in
+
+  (* Declare the built-in close() function *)
+  let close_t = L.function_type i32_t [| p_t |] in
+  let close_func = L.declare_function "fclose" close_t the_module in
+   
+  (* Declare the built-in fputs() function as write() *)
+  let write_t = L.function_type i32_t [| L.pointer_type i8_t; p_t |] in 
+  let write_func = L.declare_function "fputs" write_t the_module in
+
+  (* Declare the built-in fread() function as read() *)
+  let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
+  let read_func = L.declare_function "fread" read_t the_module in
 
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
@@ -66,6 +86,7 @@ let translate (globals, functions) =
 
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
+    and float_format_str = L.build_global_stringptr "%f\n" "fmt" builder
     and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
     in
     
@@ -91,50 +112,92 @@ let translate (globals, functions) =
                    with Not_found -> StringMap.find n global_vars
     in
 
+    (* Define structs *)
+  let struct_decls =
+    let struct_decl m sdecl =
+      let sname = sdecl.A.sname
+      and sformal_types =
+  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) sdecl.A.sformals)
+      in let stype = L.struct_type context sformal_types in
+      StringMap.add sname (stype, sdecl.A.sformals) m in
+    List.fold_left struct_decl StringMap.empty structs in
+    let struct_lookup n = try StringMap.find n struct_decls
+  with Not_found -> raise (Failure ("struct " ^ n ^ " unrecognized")) 
+in
+
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
-	        A.NumLit i -> L.const_int i32_t i
-	  | A.StringLit s -> L.build_global_stringptr s "tmp" builder
+	      A.NumLit i -> L.const_int i32_t i
+      | A.FloatLit f -> L.const_float f_t f
+	    | A.StringLit s -> L.build_global_stringptr s "tmp" builder
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id s -> L.build_load (lookup s) s builder
       | A.Binop (e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
-	  (match op with
-	    A.Add     -> L.build_add
-	  | A.Sub     -> L.build_sub
-	  | A.Mult    -> L.build_mul
+	     let e1' = expr builder e1
+	     and e2' = expr builder e2 in
+        if (L.type_of e1' = f_t || L.type_of e2' = f_t) then
+  	       (match op with
+      	    A.Add     -> L.build_fadd
+      	  | A.Sub     -> L.build_fsub
+      	  | A.Mult    -> L.build_fmul
+          | A.Div     -> L.build_fdiv
+      	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+      	  | A.Neq     -> L.build_fcmp L.Fcmp.One
+      	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
+      	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
+      	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
+      	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
+          | _ -> raise (Failure ("operator not supported for operand"))
+      	  ) e1' e2' "tmp" builder
+        else
+          (match op with
+            A.Add     -> L.build_add
+          | A.Sub     -> L.build_sub
+          | A.Mult    -> L.build_mul
           | A.Div     -> L.build_sdiv
-	  | A.And     -> L.build_and
-	  | A.Or      -> L.build_or
-	  | A.Equal   -> L.build_icmp L.Icmp.Eq
-	  | A.Neq     -> L.build_icmp L.Icmp.Ne
-	  | A.Less    -> L.build_icmp L.Icmp.Slt
-	  | A.Leq     -> L.build_icmp L.Icmp.Sle
-	  | A.Greater -> L.build_icmp L.Icmp.Sgt
-	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-	  ) e1' e2' "tmp" builder
+          | A.And     -> L.build_and
+          | A.Or      -> L.build_or
+          | A.Equal   -> L.build_icmp L.Icmp.Eq
+          | A.Neq     -> L.build_icmp L.Icmp.Ne
+          | A.Less    -> L.build_icmp L.Icmp.Slt
+          | A.Leq     -> L.build_icmp L.Icmp.Sle
+          | A.Greater -> L.build_icmp L.Icmp.Sgt
+          | A.Geq     -> L.build_icmp L.Icmp.Sge
+            ) e1' e2' "tmp" builder
       | A.Unop(op, e) ->
-	  let e' = expr builder e in
-	  (match op with
-	    A.Neg     -> L.build_neg
-          | A.Not     -> L.build_not) e' "tmp" builder
+	     let e' = expr builder e in
+	       (match op with
+	          A.Neg     -> 
+              (if (L.type_of e' = f_t) then
+                L.build_fneg
+              else
+                L.build_neg)
+            | A.Not     -> L.build_not) e' "tmp" builder
+         
       | A.Assign (s, e) -> let e' = expr builder e in
 	                   ignore (L.build_store e' (lookup s) builder); e'
-      | A.Call ("print", [e]) | A.Call ("printb", [e]) ->
-	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
-	    "printf" builder
-      | A.Call ("printbig", [e]) ->
-    L.build_call printbig_func [| (expr builder e) |] "printbig" builder
+      | A.Call ("print", [e]) 
+      | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str ; (expr builder e) |]
+	                               "printf" builder
+      | A.Call ("printbig", [e]) -> L.build_call printbig_func [| (expr builder e) |] "printbig" builder
+      | A.Call("open", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+            L.build_call open_func (Array.of_list x) "fopen" builder
+      | A.Call("close", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+            L.build_call close_func (Array.of_list x) "fclose" builder
+      | A.Call ("read", [e]) ->
+      L.build_call read_func [| (expr builder e) |] "fread" builder
+      | A.Call("write", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+            L.build_call write_func (Array.of_list x) "fputs" builder
+      | A.Call ("print_float", [e]) ->
+            L.build_call printf_func [| float_format_str ; (expr builder e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
-	  L.build_call printf_func [| string_format_str ; (expr builder e) |]
-	  "printf" builder
+	           L.build_call printf_func [| string_format_str ; (expr builder e) |] "printf" builder
       | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
-	 let actuals = List.rev (List.map (expr builder) (List.rev act)) in
-	 let result = (match fdecl.A.typ with A.Void -> ""
-                                            | _ -> f ^ "_result") in
+	       let actuals = List.rev (List.map (expr builder) (List.rev act)) in
+	       let result = (match fdecl.A.typ with A.Void -> ""
+                                                        | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list actuals) result builder
     in
 
