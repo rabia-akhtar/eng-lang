@@ -18,7 +18,7 @@ module A = Ast
 module StringMap = Map.Make(String)
 module String = String
 
-let translate (globals, functions) =
+let translate (globals, functions, structs) =
   let context = L.global_context () in
   let the_module = L.create_module context "English"
   and i32_t  = L.i32_type  context
@@ -27,7 +27,7 @@ let translate (globals, functions) =
   and i1_t   = L.i1_type   context
   and f_t    = L.double_type context
   and void_t = L.void_type context
-  in
+  and struct_t id = L.named_struct_type context id in
 
   let ltype_of_typ = function
       A.Int -> i32_t
@@ -35,6 +35,7 @@ let translate (globals, functions) =
     | A.Bool -> i1_t
     | A.Void -> void_t
     | A.String -> p_t
+    | A.Struct id -> struct_t id 
     in
 
   (* Declare each global variable; remember its value in a map *)
@@ -111,6 +112,19 @@ let translate (globals, functions) =
                    with Not_found -> StringMap.find n global_vars
     in
 
+    (* Define structs *)
+  let struct_decls =
+    let struct_decl m sdecl =
+      let sname = sdecl.A.sname
+      and sformal_types =
+  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) sdecl.A.sformals)
+      in let stype = L.struct_type context sformal_types in
+      StringMap.add sname (stype, sdecl.A.sformals) m in
+    List.fold_left struct_decl StringMap.empty structs in
+    let struct_lookup n = try StringMap.find n struct_decls
+  with Not_found -> raise (Failure ("struct " ^ n ^ " unrecognized")) 
+in
+
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
 	      A.NumLit i -> L.const_int i32_t i
@@ -160,13 +174,13 @@ let translate (globals, functions) =
               else
                 L.build_neg)
             | A.Not     -> L.build_not) e' "tmp" builder
+         
       | A.Assign (s, e) -> let e' = expr builder e in
 	                   ignore (L.build_store e' (lookup s) builder); e'
-      | A.Call ("print", [e]) | A.Call ("printb", [e]) ->
-	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
-	    "printf" builder
-      | A.Call ("printbig", [e]) ->
-    L.build_call printbig_func [| (expr builder e) |] "printbig" builder
+      | A.Call ("print", [e]) 
+      | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str ; (expr builder e) |]
+	                               "printf" builder
+      | A.Call ("printbig", [e]) -> L.build_call printbig_func [| (expr builder e) |] "printbig" builder
       | A.Call("open", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
             L.build_call open_func (Array.of_list x) "fopen" builder
       | A.Call("close", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
@@ -176,16 +190,14 @@ let translate (globals, functions) =
       | A.Call("write", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
             L.build_call write_func (Array.of_list x) "fputs" builder
       | A.Call ("print_float", [e]) ->
-        L.build_call printf_func [| float_format_str ; (expr builder e) |]
-        "printf" builder
+            L.build_call printf_func [| float_format_str ; (expr builder e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
-	  L.build_call printf_func [| string_format_str ; (expr builder e) |]
-	  "printf" builder
+	           L.build_call printf_func [| string_format_str ; (expr builder e) |] "printf" builder
       | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
-	 let actuals = List.rev (List.map (expr builder) (List.rev act)) in
-	 let result = (match fdecl.A.typ with A.Void -> ""
-                                            | _ -> f ^ "_result") in
+	       let actuals = List.rev (List.map (expr builder) (List.rev act)) in
+	       let result = (match fdecl.A.typ with A.Void -> ""
+                                                        | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list actuals) result builder
     in
 

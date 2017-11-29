@@ -40,6 +40,7 @@ rule token = parse
 | "false"  { FALSE }
 | "string" { STRING }
 | "file_ptr" { STRING }
+| "struct" { STRUCT }
 | ['0'-'9']+ as lxm { NUM_LIT(int_of_string lxm) }
 | ['0'-'9']+'.'['0'-'9']* | ['0'-'9']*'.'['0'-'9']+ 
 	as lxm { FLOAT_LIT(float_of_string lxm)}

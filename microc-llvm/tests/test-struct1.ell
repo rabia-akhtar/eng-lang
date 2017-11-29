@@ -1,0 +1,10 @@
+struct Book {
+	int Id;
+	string Title;
+}
+
+int main()
+{
+  print_string("ok");
+  return 0;
+}
