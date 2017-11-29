@@ -9,7 +9,7 @@ module StringMap = Map.Make(String)
 
    Check each global variable, then check each function *)
 
-let check (globals, functions) =
+let check (globals, functions, structs) =
 
   (* Raise an exception if the given list has a duplicate *)
   let report_duplicate exceptf list =
@@ -97,6 +97,14 @@ let check (globals, functions) =
        with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
 
+  let struct_decls = List.fold_left (fun m st -> StringMap.add st.sname st m) 
+                          StringMap.empty structs
+  in
+  
+  let struct_decl s = try StringMap.find s struct_decls
+      with Not_found -> raise (Failure ("unrecognized struct" ^ s))
+  in
+
   let _ = function_decl "main" in (* Ensure "main" is defined *)
 
   let check_function func =
@@ -112,6 +120,8 @@ let check (globals, functions) =
 
     report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
       (List.map snd func.locals);
+
+
 
     (* Type of each variable (global, formal, or local *)
     let symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m)
