@@ -35,15 +35,17 @@ type stmt =
   | For of expr * expr * expr * stmt
   | While of expr * stmt
 
+type var_decl = VarDecl of typ * string * expr
+
 type func_decl = {
     typ : typ;
     fname : string;
     formals : bind list;
-    locals : bind list;
+    locals : var_decl list;
     body : stmt list;
   }
 
-type program = bind list * func_decl list
+type program = var_decl list * func_decl list
 
 (* Pretty-printing functions *)
 
@@ -100,7 +102,8 @@ let string_of_typ = function
   | Void -> "void"
   | String -> "string"
 
-let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+let string_of_vdecl = function
+  VarDecl(t, id, e)  -> string_of_typ t ^ " " ^ id ^  "=" ^ string_of_expr e ^ ";\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^
