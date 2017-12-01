@@ -6,8 +6,8 @@
 #  Compile and check the error of each expected-to-fail test
 
 # Path to the LLVM interpreter
-LLI="lli"
-#LLI="/usr/local/opt/llvm/bin/lli"
+#LLI="lli"
+LLI="/usr/local/opt/llvm/bin/lli"
 
 # Path to the LLVM compiler
 LLC="/usr/local/opt/llvm/bin/llc"

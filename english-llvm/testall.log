@@ -296,10 +296,13 @@ cc -o test-printstring.exe test-printstring.s printbig.o
 diff -b test-printstring.out tests/test-printstring.out > test-printstring.diff
 ###### SUCCESS
 
-###### Testing test-read1
-./english.native < tests/test-read1.ell > test-read1.ll
-Fatal error: exception Parsing.Parse_error
-###### FAILED
+###### Testing test-struct1
+./english.native < tests/test-struct1.ell > test-struct1.ll
+/usr/local/opt/llvm/bin/llc test-struct1.ll > test-struct1.s
+cc -o test-struct1.exe test-struct1.s printbig.o
+./test-struct1.exe
+diff -b test-struct1.out tests/test-struct1.out > test-struct1.diff
+###### SUCCESS
 
 ###### Testing test-var1
 ./english.native < tests/test-var1.ell > test-var1.ll
