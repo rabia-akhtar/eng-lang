@@ -12,7 +12,6 @@ type typ = Int
     | String
     | Struct of string
 
-
 type bind = typ * string
 
 type expr =
