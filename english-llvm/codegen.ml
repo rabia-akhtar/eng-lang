@@ -121,7 +121,7 @@ let translate (globals, functions, structs) =
     let struct_decl m sdecl =
       let sname = sdecl.A.sname
       and sformal_types =
-  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) sdecl.A.sformals)
+  Array.of_list (List.map (fun (A.VarDecl(t,_,_)) -> ltype_of_typ t) sdecl.A.sformals)
       in let stype = L.struct_type context sformal_types in
       StringMap.add sname (stype, sdecl.A.sformals) m in
     List.fold_left struct_decl StringMap.empty structs in
