@@ -78,7 +78,7 @@ vdecl:
   | typ ID ASSIGN expr SEMI { VarDecl($1, $2, $4) }
 
 sdecl:
-    STRUCT ID LBRACE vdecl_list RBRACE
+    STRUCT ID LBRACE formals_opt RBRACE
       { 
         { sname = $2;
           sformals = $4;

@@ -21,8 +21,13 @@ let check (globals, functions, structs) =
   in
 
   (* Raise an exception if a given binding is to a void type *)
-  let check_not_void exceptf = function
+  let check_not_void_f exceptf = function
       (Void, n) -> raise (Failure (exceptf n))
+    | _ -> ()
+  in
+
+   let check_not_void_v exceptf = function
+     (VarDecl(Void, n,_)) -> raise (Failure (exceptf n)) 
     | _ -> ()
   in
   
@@ -34,9 +39,10 @@ let check (globals, functions, structs) =
    
   (**** Checking Global Variables ****)
 
-  List.iter (check_not_void (fun n -> "illegal void global " ^ n)) globals;
+  List.iter (check_not_void_v (fun n -> "illegal void global " ^ n)) globals;
    
-  report_duplicate (fun n -> "duplicate global " ^ n) (List.map snd globals);
+  report_duplicate (fun n -> "duplicate global " ^ n) 
+    (List.map (fun (VarDecl(_,n,_)) -> n)  globals);
 
   (**** Checking Functions ****)
 
@@ -109,24 +115,27 @@ let check (globals, functions, structs) =
 
   let check_function func =
 
-    List.iter (check_not_void (fun n -> "illegal void formal " ^ n ^
+    List.iter (check_not_void_f (fun n -> "illegal void formal " ^ n ^
       " in " ^ func.fname)) func.formals;
 
     report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
       (List.map snd func.formals);
 
-    List.iter (check_not_void (fun n -> "illegal void local " ^ n ^
+    List.iter (check_not_void_v (fun n -> "illegal void local " ^ n ^
       " in " ^ func.fname)) func.locals;
 
     report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
-      (List.map snd func.locals);
+      (List.map (fun (VarDecl(_,n,_)) -> n) func.locals);
 
 
 
     (* Type of each variable (global, formal, or local *)
-    let symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m)
-	StringMap.empty (globals @ func.formals @ func.locals )
-    in
+    let var_symbols = List.fold_left 
+      (fun m (VarDecl(t,n,_)) -> StringMap.add n t m)
+          StringMap.empty (globals @ func.locals) in
+
+    let symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m) 
+      var_symbols func.formals in
 
     let type_of_identifier s =
       try StringMap.find s symbols

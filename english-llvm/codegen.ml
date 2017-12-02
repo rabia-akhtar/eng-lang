@@ -41,7 +41,8 @@ let translate (globals, functions, structs) =
   (* Declare each global variable; remember its value in a map *)
   let global_vars =
     let global_var m (A.VarDecl(t, n, e)) =
-      let init = get_init_val e
+      (* let init = get_init_val e *)
+      let init = L.const_int (ltype_of_typ t) 0
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
 
@@ -100,9 +101,10 @@ let translate (globals, functions, structs) =
 	    StringMap.add n local m in
 
       let add_local m (A.VarDecl(t, n, e)) =
-       let e' = expr builder e in
-	     let local_var = L.build_alloca (ltype_of_typ t) n builder in 
-        ignore (L.build_store e' local_var builder);
+       (* let e' = expr builder e in *)
+	     (* let local_var = L.build_alloca (ltype_of_typ t) n builder in  *)
+        (* ignore (L.build_store e' local_var builder); *)
+        let local_var = L.build_alloca (ltype_of_typ t) n builder in
         StringMap.add n local_var m in
 
       let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
