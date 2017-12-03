@@ -127,15 +127,12 @@ let check (globals, functions, structs) =
     report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
       (List.map (fun (VarDecl(_,n,_)) -> n) func.locals);
 
-
-
     (* Type of each variable (global, formal, or local *)
-    let var_symbols = List.fold_left 
-      (fun m (VarDecl(t,n,_)) -> StringMap.add n t m)
-          StringMap.empty (globals @ func.locals) in
+    let var_symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m) 
+       StringMap.empty func.formals in
 
-    let symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m) 
-      var_symbols func.formals in
+    let symbols = List.fold_left (fun m (VarDecl(t,n,_)) -> StringMap.add n t m)
+       var_symbols (globals @ func.locals) in
 
     let type_of_identifier s =
       try StringMap.find s symbols

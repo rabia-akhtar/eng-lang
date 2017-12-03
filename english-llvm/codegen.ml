@@ -80,6 +80,19 @@ let translate (globals, functions, structs) =
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
 
+ let get_init_val  = function
+        A.NumLit i -> L.const_int i32_t i
+      | A.FloatLit f -> L.const_float f_t f
+      | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
+      | A.Noexpr -> L.const_int i32_t 0
+ in
+
+ let get_init_noexpr = function
+        A.Int -> L.const_int i32_t 0
+      | A.Float -> L.const_float f_t 0.0
+      | A.Bool -> L.const_int i1_t 0
+  in
+
   (* Construct code for an expression; return its value *)
   let rec expr builder g_map l_map = function
         A.NumLit i -> L.const_int i32_t i
@@ -156,26 +169,11 @@ let translate (globals, functions, structs) =
          L.build_call fdef (Array.of_list actuals) result builder
     in
 
-(*  let rec get_init_val = function 
-    A.NumLit i -> L.const_int i32_t i
-    | A.FloatLit f -> L.const_float f_t f 
-    | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
-    | A.StringLit s -> L.const_string p_t s
-    | A.Noexpr    -> L.const_int i32_t 0
-
-  in *)
-
  (* Declare each global variable; remember its value in a map *)
   let global_vars =
     let global_var m (A.VarDecl(t, n, e)) =
-      (* let init = get_init_val e in  *)
-      let init = L.const_int (ltype_of_typ t) 0 in
+      let init = get_init_val e in
       StringMap.add n (L.define_global n init the_module) m in
-      (* let g_builder = L.builder context in  *)
-      (* let e' = expr g_builder m (StringMap.empty) e in *)
-      (* let g_var = L.build_alloca (ltype_of_typ t) n g_builder in *)
-      (* ignore (L.build_store e' g_var g_builder); *)
-      (* StringMap.add n g_var m in *)
     List.fold_left global_var StringMap.empty globals in
   
   (* Fill in the body of the given function *)
@@ -192,13 +190,20 @@ let translate (globals, functions, structs) =
 	    ignore (L.build_store p local builder);
 	    StringMap.add n local m in
 
-      let add_local m (A.VarDecl(t, n, e)) =
-        let e' = expr builder global_vars m e in
-        let l_var = L.build_alloca (ltype_of_typ t) n builder in
-        ignore (L.build_store e' l_var builder);
-        StringMap.add n l_var m in
+    let add_local m (A.VarDecl(t, n, e)) =
+      let e' = match e with 
+            A.Noexpr -> get_init_noexpr t
+          | _ -> expr builder global_vars m e 
+      in
+      (* let e' = expr builder global_vars m e in *)
+      (* let l_var = L.build_alloca (ltype_of_typ t) n builder in *)
+      (* let l_var = L.build_alloca (ltype_of_typ t) n builder in *)
+      L.set_value_name n e';
+      let l_var = L.build_alloca (ltype_of_typ t) n builder in
+      ignore (L.build_store e' l_var builder);
+      StringMap.add n l_var m in
 
-      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+    let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
           (Array.to_list (L.params the_function)) in
       List.fold_left add_local formals fdecl.A.locals in
 
