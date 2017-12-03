@@ -50,7 +50,7 @@ let check (globals, functions, structs) =
   let built_in_decls =
 
       StringMap.add "print"
-     { typ = Void; fname = "print"; formals = [(Int, "x")];
+     { typ = Void; fname = "print"; formals = [(String, "x")];
        locals = []; body = [] }
 
        (StringMap.add "printb"
