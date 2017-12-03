@@ -173,7 +173,7 @@ let translate (globals, functions, structs) =
 
  (* Declare each global variable; remember its value in a map *)
   let global_vars =
-    let global_var m (A.VarDecl(t, n, e)) =
+    let global_var m (A.VarDecl(_, n, e)) =
       let init = get_init_val e in
       StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
