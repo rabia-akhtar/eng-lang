@@ -85,12 +85,14 @@ let translate (globals, functions, structs) =
       | A.FloatLit f -> L.const_float f_t f
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Noexpr -> L.const_int i32_t 0
+      (* TODO: init_val for string *)
  in
 
  let get_init_noexpr = function
         A.Int -> L.const_int i32_t 0
       | A.Float -> L.const_float f_t 0.0
       | A.Bool -> L.const_int i1_t 0
+      (* TODO: init_val for string *)
   in
 
   (* Construct code for an expression; return its value *)
@@ -195,9 +197,6 @@ let translate (globals, functions, structs) =
             A.Noexpr -> get_init_noexpr t
           | _ -> expr builder global_vars m e 
       in
-      (* let e' = expr builder global_vars m e in *)
-      (* let l_var = L.build_alloca (ltype_of_typ t) n builder in *)
-      (* let l_var = L.build_alloca (ltype_of_typ t) n builder in *)
       L.set_value_name n e';
       let l_var = L.build_alloca (ltype_of_typ t) n builder in
       ignore (L.build_store e' l_var builder);
