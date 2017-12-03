@@ -38,13 +38,6 @@ let translate (globals, functions, structs) =
     | A.Struct id -> struct_t id 
     in
 
-  (* Declare each global variable; remember its value in a map *)
-  let global_vars =
-    let global_var m (t, n) =
-      let init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n init the_module) m in
-    List.fold_left global_var StringMap.empty globals in
-
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
@@ -69,87 +62,64 @@ let translate (globals, functions, structs) =
   let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
   let read_func = L.declare_function "fread" read_t the_module in
 
+  let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
+  let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
+  let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+
+  (* Return the value for a variable or formal argument *)
+  let lookup g_map l_map n = try StringMap.find n l_map
+        with Not_found -> StringMap.find n g_map in
+
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
     let function_decl m fdecl =
       let name = fdecl.A.fname
       and formal_types =
-	Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
+  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
       in let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
-  
-  (* Fill in the body of the given function *)
-  let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
-    let builder = L.builder_at_end context (L.entry_block the_function) in
 
-
-    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%f\n" "fmt" builder
-    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
-    in
-    
-    (* Construct the function's "locals": formal arguments and locally
-       declared variables.  Allocate each on the stack, initialize their
-       value, if appropriate, and remember their values in the "locals" map *)
-    let local_vars =
-      let add_formal m (t, n) p = L.set_value_name n p;
-	let local = L.build_alloca (ltype_of_typ t) n builder in
-	ignore (L.build_store p local builder);
-	StringMap.add n local m in
-
-      let add_local m (t, n) =
-	let local_var = L.build_alloca (ltype_of_typ t) n builder
-	in StringMap.add n local_var m in
-
-      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
-          (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.A.locals in
-
-    (* Return the value for a variable or formal argument *)
-    let lookup n = try StringMap.find n local_vars
-                   with Not_found -> StringMap.find n global_vars
-    in
-
-    (* Define structs *)
-  let struct_decls =
-    let struct_decl m sdecl =
-      let sname = sdecl.A.sname
-      and sformal_types =
-  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) sdecl.A.sformals)
-      in let stype = L.struct_type context sformal_types in
-      StringMap.add sname (stype, sdecl.A.sformals) m in
-    List.fold_left struct_decl StringMap.empty structs in
-    let struct_lookup n = try StringMap.find n struct_decls
-  with Not_found -> raise (Failure ("struct " ^ n ^ " unrecognized")) 
-in
-
-    (* Construct code for an expression; return its value *)
-    let rec expr builder = function
-	      A.NumLit i -> L.const_int i32_t i
+ let get_init_val  = function
+        A.NumLit i -> L.const_int i32_t i
       | A.FloatLit f -> L.const_float f_t f
-	    | A.StringLit s -> L.build_global_stringptr s "tmp" builder
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Noexpr -> L.const_int i32_t 0
-      | A.Id s -> L.build_load (lookup s) s builder
+      (* TODO: init_val for string *)
+ in
+
+ let get_init_noexpr = function
+        A.Int -> L.const_int i32_t 0
+      | A.Float -> L.const_float f_t 0.0
+      | A.Bool -> L.const_int i1_t 0
+      (* TODO: init_val for string *)
+  in
+
+  (* Construct code for an expression; return its value *)
+  let rec expr builder g_map l_map = function
+        A.NumLit i -> L.const_int i32_t i
+      | A.FloatLit f -> L.const_float f_t f
+      | A.StringLit s -> L.build_global_stringptr s "tmp" builder
+      | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
+      | A.Noexpr -> L.const_int i32_t 0
+      | A.Id s -> L.build_load (lookup g_map l_map s) s builder
       | A.Binop (e1, op, e2) ->
-	     let e1' = expr builder e1
-	     and e2' = expr builder e2 in
+       let e1' = expr builder g_map l_map e1
+       and e2' = expr builder g_map l_map e2 in
         if (L.type_of e1' = f_t || L.type_of e2' = f_t) then
-  	       (match op with
-      	    A.Add     -> L.build_fadd
-      	  | A.Sub     -> L.build_fsub
-      	  | A.Mult    -> L.build_fmul
+           (match op with
+            A.Add     -> L.build_fadd
+          | A.Sub     -> L.build_fsub
+          | A.Mult    -> L.build_fmul
           | A.Div     -> L.build_fdiv
-      	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
-      	  | A.Neq     -> L.build_fcmp L.Fcmp.One
-      	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
-      	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
-      	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
-      	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
+          | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+          | A.Neq     -> L.build_fcmp L.Fcmp.One
+          | A.Less    -> L.build_fcmp L.Fcmp.Olt
+          | A.Leq     -> L.build_fcmp L.Fcmp.Ole
+          | A.Greater -> L.build_fcmp L.Fcmp.Ogt
+          | A.Geq     -> L.build_fcmp L.Fcmp.Oge
           | _ -> raise (Failure ("operator not supported for operand"))
-      	  ) e1' e2' "tmp" builder
+          ) e1' e2' "tmp" builder
         else
           (match op with
             A.Add     -> L.build_add
@@ -166,40 +136,89 @@ in
           | A.Geq     -> L.build_icmp L.Icmp.Sge
             ) e1' e2' "tmp" builder
       | A.Unop(op, e) ->
-	     let e' = expr builder e in
-	       (match op with
-	          A.Neg     -> 
+       let e' = expr builder g_map l_map e in
+         (match op with
+            A.Neg     -> 
               (if (L.type_of e' = f_t) then
                 L.build_fneg
               else
                 L.build_neg)
             | A.Not     -> L.build_not) e' "tmp" builder
          
-      | A.Assign (s, e) -> let e' = expr builder e in
-	                   ignore (L.build_store e' (lookup s) builder); e'
+      | A.Assign (s, e) -> let e' = expr builder g_map l_map e in
+                     ignore (L.build_store e' (lookup g_map l_map s) builder); e'
       | A.Call ("print", [e]) 
-      | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str ; (expr builder e) |]
-	                               "printf" builder
-      | A.Call ("printbig", [e]) -> L.build_call printbig_func [| (expr builder e) |] "printbig" builder
-      | A.Call("open", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+      | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str builder; (expr builder g_map l_map e) |]
+                                 "printf" builder
+      | A.Call ("printbig", [e]) -> L.build_call printbig_func [| (expr builder g_map l_map e) |] "printbig" builder
+      | A.Call("open", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call open_func (Array.of_list x) "fopen" builder
-      | A.Call("close", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+      | A.Call("close", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call close_func (Array.of_list x) "fclose" builder
       | A.Call ("read", [e]) ->
-      L.build_call read_func [| (expr builder e) |] "fread" builder
-      | A.Call("write", e) -> let x = List.rev (List.map (expr builder) (List.rev e)) in
+      L.build_call read_func [| (expr builder g_map l_map e) |] "fread" builder
+      | A.Call("write", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call write_func (Array.of_list x) "fputs" builder
       | A.Call ("print_float", [e]) ->
-            L.build_call printf_func [| float_format_str ; (expr builder e) |] "printf" builder
+            L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
-	           L.build_call printf_func [| string_format_str ; (expr builder e) |] "printf" builder
+             L.build_call printf_func [| string_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
-	       let actuals = List.rev (List.map (expr builder) (List.rev act)) in
-	       let result = (match fdecl.A.typ with A.Void -> ""
+         let actuals = List.rev (List.map (expr builder g_map l_map) (List.rev act)) in
+         let result = (match fdecl.A.typ with A.Void -> ""
                                                         | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list actuals) result builder
     in
+
+ (* Declare each global variable; remember its value in a map *)
+  let global_vars =
+    let global_var m (A.VarDecl(_, n, e)) =
+      let init = get_init_val e in
+      StringMap.add n (L.define_global n init the_module) m in
+    List.fold_left global_var StringMap.empty globals in
+  
+  (* Fill in the body of the given function *)
+  let build_function_body fdecl =
+    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
+    let builder = L.builder_at_end context (L.entry_block the_function) in
+    
+    (* Construct the function's "locals": formal arguments and locally
+       declared variables.  Allocate each on the stack, initialize their
+       value, if appropriate, and remember their values in the "locals" map *)
+    let local_vars =
+      let add_formal m (t, n) p = L.set_value_name n p;
+	    let local = L.build_alloca (ltype_of_typ t) n builder in
+	    ignore (L.build_store p local builder);
+	    StringMap.add n local m in
+
+    let add_local m (A.VarDecl(t, n, e)) =
+      let e' = match e with 
+            A.Noexpr -> get_init_noexpr t
+          | _ -> expr builder global_vars m e 
+      in
+      L.set_value_name n e';
+      let l_var = L.build_alloca (ltype_of_typ t) n builder in
+      ignore (L.build_store e' l_var builder);
+      StringMap.add n l_var m in
+
+    let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+          (Array.to_list (L.params the_function)) in
+      List.fold_left add_local formals fdecl.A.locals in
+
+    (* Define structs *)
+  let struct_decls =
+    let struct_decl m sdecl =
+      let sname = sdecl.A.sname
+      and sformal_types =
+  Array.of_list (List.map (fun (A.VarDecl(t,_,_)) -> ltype_of_typ t) sdecl.A.sformals)
+      in let stype = L.struct_type context sformal_types in
+      StringMap.add sname (stype, sdecl.A.sformals) m in
+    List.fold_left struct_decl StringMap.empty structs in
+    let struct_lookup n = try StringMap.find n struct_decls
+  with Not_found -> raise (Failure ("struct " ^ n ^ " unrecognized")) 
+in
+
 
     (* Invoke "f builder" if the current block doesn't already
        have a terminal (e.g., a branch). *)
@@ -211,13 +230,13 @@ in
     (* Build the code for the given statement; return the builder for
        the statement's successor *)
     let rec stmt builder = function
-	A.Block sl -> List.fold_left stmt builder sl
-      | A.Expr e -> ignore (expr builder e); builder
+	     A.Block sl -> List.fold_left stmt builder sl
+      | A.Expr e -> ignore (expr builder global_vars local_vars e); builder
       | A.Return e -> ignore (match fdecl.A.typ with
 	  A.Void -> L.build_ret_void builder
-	| _ -> L.build_ret (expr builder e) builder); builder
+	| _ -> L.build_ret (expr builder global_vars local_vars e) builder); builder
       | A.If (predicate, then_stmt, else_stmt) ->
-         let bool_val = expr builder predicate in
+         let bool_val = expr builder global_vars local_vars predicate in
 	 let merge_bb = L.append_block context "merge" the_function in
 
 	 let then_bb = L.append_block context "then" the_function in
@@ -240,7 +259,7 @@ in
 	    (L.build_br pred_bb);
 
 	  let pred_builder = L.builder_at_end context pred_bb in
-	  let bool_val = expr pred_builder predicate in
+	  let bool_val = expr pred_builder global_vars local_vars predicate in
 
 	  let merge_bb = L.append_block context "merge" the_function in
 	  ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
