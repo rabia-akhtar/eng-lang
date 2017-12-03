@@ -12,7 +12,6 @@ type typ = Int
     | String
     | Struct of string
 
-
 type bind = typ * string
 
 type expr =
@@ -36,20 +35,22 @@ type stmt =
   | For of expr * expr * expr * stmt
   | While of expr * stmt
 
+type var_decl = VarDecl of typ * string * expr
+
 type func_decl = {
     typ : typ;
     fname : string;
     formals : bind list;
-    locals : bind list;
+    locals : var_decl list;
     body : stmt list;
   }
 
 type struct_decl = {
     sname: string;
-    sformals: bind list;
+    sformals: var_decl list;
  }
 
-type program = bind list * func_decl list * struct_decl list 
+type program = var_decl list * func_decl list * struct_decl list 
 
 (* Pretty-printing functions *)
 
@@ -107,7 +108,8 @@ let string_of_typ = function
   | String -> "string"
   | Struct(id) -> "struct" ^ id
 
-let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+let string_of_vdecl = function
+  VarDecl(t, id, e)  -> string_of_typ t ^ " " ^ id ^  "=" ^ string_of_expr e ^ ";\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^
@@ -118,7 +120,8 @@ let string_of_fdecl fdecl =
   "}\n"
 
 let string_of_sdecl sdecl =
- "struct " ^ sdecl.sname ^ String.concat "{\n" (List.map string_of_vdecl sdecl.sformals) ^ "\n}\n"
+ "struct " ^ sdecl.sname ^ String.concat 
+ "{\n" (List.map string_of_vdecl sdecl.sformals) ^ "\n}\n"
 
 let string_of_program (vars, funcs, structs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^

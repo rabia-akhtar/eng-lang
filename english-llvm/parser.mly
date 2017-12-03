@@ -74,7 +74,8 @@ vdecl_list:
   | vdecl_list vdecl { $2 :: $1 }
 
 vdecl:
-   typ ID SEMI { ($1, $2) }
+    typ ID SEMI             { VarDecl($1, $2, Noexpr) }
+  | typ ID ASSIGN expr SEMI { VarDecl($1, $2, $4) }
 
 sdecl:
     STRUCT ID LBRACE vdecl_list RBRACE
