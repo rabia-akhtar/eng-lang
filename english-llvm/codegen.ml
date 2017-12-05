@@ -62,6 +62,7 @@ let translate (globals, functions, structs) =
   let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
   let read_func = L.declare_function "fread" read_t the_module in
 
+  (* format string *)
   let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
   let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
   let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
@@ -80,18 +81,13 @@ let translate (globals, functions, structs) =
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
 
- (* Format str for printf (without new line) *)
-  let string_format_str2 b = L.build_global_stringptr "%s" "fmt" b
-  and int_format_str2    b = L.build_global_stringptr "%d" "fmt" b
-  and float_format_str2  b = L.build_global_stringptr "%f" "fmt" b in
-
   let format_str x_type builder =
     let b = builder in
       match x_type with
-        A.Int      -> int_format_str2 b
-      | A.Float    -> float_format_str2 b
-      | A.String   -> string_format_str2 b
-      | A.Bool     -> int_format_str2 b
+        A.Int      -> int_format_str b
+      | A.Float    -> float_format_str b
+      | A.String   -> string_format_str b
+      | A.Bool     -> int_format_str b
       | _ -> raise (Failure ("Invalid printf type"))
   in
 
@@ -100,9 +96,7 @@ let translate (globals, functions, structs) =
       A.NumLit _ -> A.Int
     | A.FloatLit _ -> A.Float
     | A.StringLit _ -> A.String
-    | A.BoolLit _ -> A.Bool
   in
-
 
  let get_init_val  = function
         A.NumLit i -> L.const_int i32_t i
