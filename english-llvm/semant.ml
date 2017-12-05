@@ -93,8 +93,12 @@ let check (globals, functions, structs) =
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
        locals = []; body = [] }))))))))
 
+
    in
      
+  (* Accepted types for print in function *)
+  let print_types = [String; Int; Bool; Float] in
+
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
   in
@@ -176,12 +180,21 @@ let check (globals, functions, structs) =
            raise (Failure ("expecting " ^ string_of_int
              (List.length fd.formals) ^ " arguments in " ^ string_of_expr call))
          else
-           List.iter2 (fun (ft, _) e -> let et = expr e in
-              ignore (check_assign ft et
-                (Failure ("illegal actual argument found " ^ string_of_typ et ^
-                " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e))))
-             fd.formals actuals;
-           fd.typ
+           (* rules for acceptable types in print function *)
+           let _ =
+              (match fname with
+                "print" ->
+                  ignore (List.iter (fun e ->
+                    let etyp = expr e in
+                    if (List.mem etyp print_types) == false then
+                      raise (Failure ("illegal actual argument found " ^ string_of_typ etyp ^ " in " ^ string_of_expr e))) actuals);
+                | _ ->
+                  List.iter2 (fun (ftyp, _) e ->
+                    let etyp = expr e in
+                    ignore (check_assign ftyp etyp (Failure ("illegal actual argument found " ^ string_of_typ etyp ^ " expected " ^ string_of_typ ftyp ^ " in " ^ string_of_expr e)))
+                  ) fd.formals actuals
+              ) in
+            fd.typ
     in
 
     let check_bool_expr e = if expr e != Bool
