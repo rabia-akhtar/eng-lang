@@ -23,6 +23,7 @@ let translate (globals, functions, structs) =
   let the_module = L.create_module context "English"
   and i32_t  = L.i32_type  context
   and i8_t   = L.i8_type   context
+  and i64_t   = L.i64_type   context
   and p_t  = L.pointer_type (L.i8_type (context))
   and i1_t   = L.i1_type   context
   and f_t    = L.double_type context
@@ -84,15 +85,16 @@ let translate (globals, functions, structs) =
         A.NumLit i -> L.const_int i32_t i
       | A.FloatLit f -> L.const_float f_t f
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
+      | A.StringLit s -> let l = L.define_global "" (L.const_stringz context s) the_module in
+      L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) p_t 
       | A.Noexpr -> L.const_int i32_t 0
-      (* TODO: init_val for string *)
  in
 
  let get_init_noexpr = function
         A.Int -> L.const_int i32_t 0
       | A.Float -> L.const_float f_t 0.0
       | A.Bool -> L.const_int i1_t 0
-      (* TODO: init_val for string *)
+      | A.String -> get_init_val(A.StringLit "")
   in
 
   (* Construct code for an expression; return its value *)
