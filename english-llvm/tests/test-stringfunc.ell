@@ -1,0 +1,11 @@
+int main(){
+	string s1 = "hello world";
+	string s2 = "hello world";
+	int length1 = string_length(s1);
+	int length2 = string_length(s2);
+	int compare = string_compare(s1, s2);
+	print(length1);
+	print(length2);
+	print(compare);
+	return(0);
+}

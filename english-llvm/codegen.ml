@@ -63,6 +63,14 @@ let translate (globals, functions, structs) =
   let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
   let read_func = L.declare_function "fread" read_t the_module in
 
+  (* Declare the built-in strlen() function as string_length() *)
+  let string_length_t = L.function_type i32_t [| p_t |] in 
+  let string_length_func = L.declare_function "strlen" string_length_t the_module in
+
+  (* Declare the built-in strcmp() function as string_length() *)
+  let string_compare_t = L.function_type i32_t [| p_t; p_t|] in 
+  let string_compare_func = L.declare_function "strcmp" string_compare_t the_module in
+
   let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
   let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
   let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
@@ -157,10 +165,14 @@ let translate (globals, functions, structs) =
             L.build_call open_func (Array.of_list x) "fopen" builder
       | A.Call("close", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call close_func (Array.of_list x) "fclose" builder
-      | A.Call ("read", [e]) ->
-      L.build_call read_func [| (expr builder g_map l_map e) |] "fread" builder
+      | A.Call ("read", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call read_func (Array.of_list x) "fread" builder
       | A.Call("write", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call write_func (Array.of_list x) "fputs" builder
+      | A.Call("string_length", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call string_length_func (Array.of_list x) "strlen" builder
+      | A.Call("string_compare", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call string_compare_func (Array.of_list x) "strcmp" builder
       | A.Call ("print_float", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->

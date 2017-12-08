@@ -296,6 +296,14 @@ cc -o test-printstring.exe test-printstring.s printbig.o
 diff -b test-printstring.out tests/test-printstring.out > test-printstring.diff
 ###### SUCCESS
 
+###### Testing test-stringfunc
+./english.native < tests/test-stringfunc.ell > test-stringfunc.ll
+/usr/local/opt/llvm/bin/llc test-stringfunc.ll > test-stringfunc.s
+cc -o test-stringfunc.exe test-stringfunc.s printbig.o
+./test-stringfunc.exe
+diff -b test-stringfunc.out tests/test-stringfunc.out > test-stringfunc.diff
+###### SUCCESS
+
 ###### Testing test-stringinit
 ./english.native < tests/test-stringinit.ell > test-stringinit.ll
 /usr/local/opt/llvm/bin/llc test-stringinit.ll > test-stringinit.s

@@ -89,9 +89,19 @@ let check (globals, functions, structs) =
      [(String, "x"); (String, "y")]; 
        locals = []; body = [] }
 
+       (StringMap.add "string_length"
+     { typ = Int; fname = "string_length"; formals = 
+     [(String, "x")]; 
+       locals = []; body = [] }
+
+       (StringMap.add "string_compare"
+     { typ = Int; fname = "string_compare"; formals = 
+     [(String, "x"); (String, "x")]; 
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] }))))))))
+       locals = []; body = [] }))))))))))
 
    in
      
