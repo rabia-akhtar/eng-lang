@@ -72,14 +72,10 @@ let translate (globals, functions, structs) =
   let string_compare_t = L.function_type i32_t [| p_t; p_t|] in 
   let string_compare_func = L.declare_function "strcmp" string_compare_t the_module in
 
-<<<<<<< HEAD
-  (* format string *)
-=======
   (* Declare c code as string_lower() *)
   let to_lower_t = L.function_type i8_t [| i8_t |] in 
   let to_lower_func = L.declare_function "char_lower" to_lower_t the_module in
 
->>>>>>> strings
   let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
   let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
   let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
@@ -127,7 +123,7 @@ let translate (globals, functions, structs) =
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.StringLit s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) p_t 
-      | A.Char_Lit c -> L.const_int i8_t (Char.code c)
+      | A.CharLit c -> L.const_int i8_t (Char.code c)
       | A.Noexpr -> L.const_int i32_t 0
  in
 
@@ -144,7 +140,7 @@ let translate (globals, functions, structs) =
         A.NumLit i -> L.const_int i32_t i
       | A.FloatLit f -> L.const_float f_t f
       | A.StringLit s -> L.build_global_stringptr s "tmp" builder
-      | A.Char_Lit c -> L.const_int i8_t (Char.code c)
+      | A.CharLit c -> L.const_int i8_t (Char.code c)
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id s -> L.build_load (lookup g_map l_map s) s builder
@@ -215,15 +211,12 @@ let translate (globals, functions, structs) =
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
              L.build_call printf_func [| string_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
-<<<<<<< HEAD
       | A.Call ("print_all", [e]) ->
           let e' = expr builder g_map l_map e in
           let e_type = (gen_type) e in
           L.build_call printf_func [| (format_str e_type builder) ; e' |] "printf" builder
-=======
       | A.Call ("print_char", [e]) ->
              L.build_call printf_func [| char_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
->>>>>>> strings
       | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
          let actuals = List.rev (List.map (expr builder g_map l_map) (List.rev act)) in
