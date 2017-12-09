@@ -106,7 +106,10 @@ let translate (globals, functions, structs) =
     | A.FloatLit _ -> A.Float
     | A.StringLit _ -> A.String
     | A.BoolLit _ -> A.Bool
+    | A.Unop(_,e) -> gen_type e
+    | A.Binop(e1,_,_) -> gen_type e1
     | A.Noexpr -> A.Void
+
   in
 
  let get_init_val  = function
@@ -200,7 +203,7 @@ let translate (globals, functions, structs) =
              L.build_call printf_func [| string_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_all", [e]) ->
           let e' = expr builder g_map l_map e in
-          let e_type = gen_type e in
+          let e_type = (gen_type) e in
           L.build_call printf_func [| (format_str e_type builder) ; e' |] "printf" builder
       | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
