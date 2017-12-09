@@ -3,6 +3,10 @@
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
 
+type pop = 
+  | Dec 
+  | Inc
+
 type uop = Neg | Not
 
 type typ = Int
@@ -15,6 +19,7 @@ type typ = Int
 
 type bind = typ * string
 
+
 type expr =
     (* Literal of int *)
     NumLit of int
@@ -25,7 +30,8 @@ type expr =
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Assign of string * expr
+  | Pop of expr * pop 
+  | Assign of expr * expr
   | Call of string * expr list
   | Noexpr
 
@@ -74,6 +80,10 @@ let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
 
+let string_of_pop = function
+    Inc -> "++"
+  | Dec -> "--"
+
 let rec string_of_expr = function
     NumLit(l) -> string_of_int l
   | FloatLit(f) -> string_of_float f
@@ -81,12 +91,12 @@ let rec string_of_expr = function
   | BoolLit(false) -> "false"
   | StringLit(s) -> s
   | Char_Lit(s) -> Char.escaped s
-
   | Id(s) -> s
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-  | Assign(v, e) -> v ^ " = " ^ string_of_expr e
+  | Pop(v, p) -> string_of_expr v ^ string_of_pop p
+  | Assign(v, e) ->  string_of_expr v ^ " = " ^ string_of_expr e
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
