@@ -71,6 +71,10 @@ let check (globals, functions, structs) =
      { typ = Void; fname = "print_float"; formals = [(Float, "x")];
        locals = []; body = [] }
 
+       (StringMap.add "print_all"
+     { typ = Void; fname = "print_all"; formals = [(String, "x")];
+       locals = []; body = [] }
+
        (StringMap.add "open"
      { typ = String; fname = "open"; formals = 
      [(String, "x"); (String, "y")]; locals = []; body = []}
@@ -101,10 +105,13 @@ let check (globals, functions, structs) =
 
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] }))))))))))
+       locals = []; body = [] })))))))))))
 
    in
-     
+
+  (* Accepted types for print_all *)
+  let print_types = [String; Int; Bool; Float] in
+
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
   in
@@ -186,12 +193,20 @@ let check (globals, functions, structs) =
            raise (Failure ("expecting " ^ string_of_int
              (List.length fd.formals) ^ " arguments in " ^ string_of_expr call))
          else
-           List.iter2 (fun (ft, _) e -> let et = expr e in
-              ignore (check_assign ft et
-                (Failure ("illegal actual argument found " ^ string_of_typ et ^
-                " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e))))
-             fd.formals actuals;
-           fd.typ
+           let _ =
+                (match fname with
+                  "print_all" ->
+                    ignore (List.iter (fun e ->
+                      let etyp = expr e in
+                      if (List.mem etyp print_types) == false then
+                        raise (Failure ("illegal actual argument found " ^ string_of_typ etyp ^ " in " ^ string_of_expr e))) actuals);
+                  | _ ->
+                  List.iter2 (fun (ftyp, _) e ->
+                    let etyp = expr e in
+                    ignore (check_assign ftyp etyp (Failure ("illegal actual argument found " ^ string_of_typ etyp ^ " expected " ^ string_of_typ ftyp ^ " in " ^ string_of_expr e)))
+                  ) fd.formals actuals
+              ) in
+            fd.typ
     in
 
     let check_bool_expr e = if expr e != Bool
