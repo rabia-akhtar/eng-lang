@@ -8,6 +8,7 @@ type uop = Neg | Not
 type typ = Int
     | Float
     | Bool
+    | Char
     | Void
     | String
     | Struct of string
@@ -20,6 +21,7 @@ type expr =
   | FloatLit of float
   | BoolLit of bool
   | StringLit of string
+  | CharLit of char
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
@@ -78,6 +80,8 @@ let rec string_of_expr = function
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | StringLit(s) -> s
+  | CharLit(s) -> Char.escaped s
+
   | Id(s) -> s
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
@@ -105,6 +109,7 @@ let string_of_typ = function
   | Float -> "float"
   | Bool -> "bool"
   | Void -> "void"
+  | Char -> "char"
   | String -> "string"
   | Struct(id) -> "struct" ^ id
 
