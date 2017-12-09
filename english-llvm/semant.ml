@@ -114,13 +114,7 @@ let check (globals, functions, structs) =
 
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-<<<<<<< HEAD
-       locals = []; body = [] })))))))))))
-=======
-       locals = []; body = [] }
-
-     ))))))))))))
->>>>>>> strings
+       locals = []; body = [] })))))))))))))
 
    in
 
@@ -176,7 +170,7 @@ let check (globals, functions, structs) =
 	  NumLit _ -> Int
       | FloatLit _ -> Float
       | BoolLit _ -> Bool
-      | Char_Lit _ -> Char
+      | CharLit _ -> Char
       | StringLit _ -> String
       | Id s -> type_of_identifier s
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in

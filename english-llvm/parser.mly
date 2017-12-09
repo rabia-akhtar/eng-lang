@@ -110,7 +110,7 @@ expr:
     NUM_LIT          { NumLit($1) }
   | FLOAT_LIT        { FloatLit($1) }
   | STRING_LIT       { StringLit($1) }
-  | CHAR_LITERAL     {Char_Lit($1)}
+  | CHAR_LITERAL     { CharLit($1)}
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }
