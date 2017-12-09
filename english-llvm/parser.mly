@@ -13,10 +13,11 @@ let trd (_,_,c) = c;;
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID
-%token INT FLOAT BOOL VOID STRING STRUCT TRUE FALSE
+%token INT CHAR FLOAT BOOL VOID STRING STRUCT TRUE FALSE
 %token <int> NUM_LIT
 %token <float> FLOAT_LIT
 %token <string> STRING_LIT
+%token <char> CHAR_LITERAL
 %token <string> ID
 %token EOF
 
@@ -67,6 +68,7 @@ typ:
   | BOOL { Bool }
   | VOID { Void }
   | STRING { String }
+  | CHAR {Char}
   | STRUCT ID { Struct ($2) }
 
 vdecl_list:
@@ -108,6 +110,7 @@ expr:
     NUM_LIT          { NumLit($1) }
   | FLOAT_LIT        { FloatLit($1) }
   | STRING_LIT       { StringLit($1) }
+  | CHAR_LITERAL     {Char_Lit($1)}
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }

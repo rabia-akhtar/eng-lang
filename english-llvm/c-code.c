@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
 
 /*
  * Font information: one byte per row, 8 rows per character
@@ -64,6 +65,10 @@ void printbig(int c)
   } while (index & 0x7); 
 }
 
+char char_lower(char c)
+{
+  return tolower(c);
+}
 
 #ifdef BUILD_TEST
 int main()

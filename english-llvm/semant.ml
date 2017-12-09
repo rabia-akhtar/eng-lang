@@ -103,9 +103,24 @@ let check (globals, functions, structs) =
      [(String, "x"); (String, "x")]; 
        locals = []; body = [] }
 
+       (StringMap.add "to_lower"
+     { typ = Char; fname = "to_lower"; formals = 
+     [(Char, "x")]; 
+       locals = []; body = [] }
+
+       (StringMap.add"print_char"
+     { typ = Void; fname = "print_char"; formals = [(Char, "x")];
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
+<<<<<<< HEAD
        locals = []; body = [] })))))))))))
+=======
+       locals = []; body = [] }
+
+     ))))))))))))
+>>>>>>> strings
 
    in
 
@@ -161,12 +176,14 @@ let check (globals, functions, structs) =
 	  NumLit _ -> Int
       | FloatLit _ -> Float
       | BoolLit _ -> Bool
+      | Char_Lit _ -> Char
       | StringLit _ -> String
       | Id s -> type_of_identifier s
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
 	       (match op with
            Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
          | Add | Sub | Mult | Div when t1 = Float && t2 = Float -> Float
+         | Add | Sub | Mult | Div when t1 = Char && t2 = Char -> Char
 	       | Equal | Neq when t1 = t2 -> Bool
 	       | Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
          | Less | Leq | Greater | Geq when t1 = Float && t2 = Float -> Bool
