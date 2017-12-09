@@ -248,6 +248,30 @@ cc -o test-if5.exe test-if5.s c-code.o
 diff -b test-if5.out tests/test-if5.out > test-if5.diff
 ###### SUCCESS
 
+###### Testing test-init1
+./english.native < tests/test-init1.ell > test-init1.ll
+/usr/local/opt/llvm/bin/llc test-init1.ll > test-init1.s
+cc -o test-init1.exe test-init1.s c-code.o
+./test-init1.exe
+diff -b test-init1.out tests/test-init1.out > test-init1.diff
+###### SUCCESS
+
+###### Testing test-init2
+./english.native < tests/test-init2.ell > test-init2.ll
+/usr/local/opt/llvm/bin/llc test-init2.ll > test-init2.s
+cc -o test-init2.exe test-init2.s c-code.o
+./test-init2.exe
+diff -b test-init2.out tests/test-init2.out > test-init2.diff
+###### SUCCESS
+
+###### Testing test-init3
+./english.native < tests/test-init3.ell > test-init3.ll
+/usr/local/opt/llvm/bin/llc test-init3.ll > test-init3.s
+cc -o test-init3.exe test-init3.s c-code.o
+./test-init3.exe
+diff -b test-init3.out tests/test-init3.out > test-init3.diff
+###### SUCCESS
+
 ###### Testing test-local1
 ./english.native < tests/test-local1.ell > test-local1.ll
 /usr/local/opt/llvm/bin/llc test-local1.ll > test-local1.s
@@ -291,7 +315,7 @@ diff -b test-ops2.out tests/test-ops2.out > test-ops2.diff
 ###### Testing test-printall
 ./english.native < tests/test-printall.ell > test-printall.ll
 /usr/local/opt/llvm/bin/llc test-printall.ll > test-printall.s
-cc -o test-printall.exe test-printall.s printbig.o
+cc -o test-printall.exe test-printall.s c-code.o
 ./test-printall.exe
 diff -b test-printall.out tests/test-printall.out > test-printall.diff
 ###### SUCCESS

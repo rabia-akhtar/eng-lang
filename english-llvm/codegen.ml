@@ -103,6 +103,7 @@ let translate (globals, functions, structs) =
       | A.Float    -> float_format_str b
       | A.String   -> string_format_str b
       | A.Bool     -> int_format_str b
+      | A.Char     -> char_format_str b
       | _ -> raise (Failure ("Invalid printf type"))
   in
 
@@ -112,6 +113,7 @@ let translate (globals, functions, structs) =
     | A.FloatLit _ -> A.Float
     | A.StringLit _ -> A.String
     | A.BoolLit _ -> A.Bool
+    | A.CharLit _ -> A.Char
     | A.Unop(_,e) -> (gen_type g_map l_map) e
     | A.Binop(e1,_,_) -> (gen_type g_map l_map) e1
     | A.Noexpr -> A.Void

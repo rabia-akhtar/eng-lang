@@ -12,5 +12,6 @@ int main()
   print_all(true);
   print_all(-1);
   print_all(100+1);
+  print_all('a');
   return 0;
 }

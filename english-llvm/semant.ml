@@ -119,7 +119,7 @@ let check (globals, functions, structs) =
    in
 
   (* Accepted types for print_all *)
-  let print_types = [String; Int; Bool; Float] in
+  let print_types = [String; Int; Bool; Float; Char] in
 
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
