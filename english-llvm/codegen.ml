@@ -36,6 +36,7 @@ let translate (globals, functions, structs) =
     | A.Bool -> i1_t
     | A.Void -> void_t
     | A.String -> p_t
+    | A.Char -> i8_t
     | A.Struct id -> struct_t id 
     in
 
@@ -71,9 +72,14 @@ let translate (globals, functions, structs) =
   let string_compare_t = L.function_type i32_t [| p_t; p_t|] in 
   let string_compare_func = L.declare_function "strcmp" string_compare_t the_module in
 
+  (* Declare c code as string_lower() *)
+  let to_lower_t = L.function_type i8_t [| i8_t |] in 
+  let to_lower_func = L.declare_function "char_lower" to_lower_t the_module in
+
   let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
   let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
   let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
+  let char_format_str builder = L.build_global_stringptr "%c\n" "fmt" builder in
 
   (* Return the value for a variable or formal argument *)
   let lookup g_map l_map n = try StringMap.find n l_map
@@ -95,6 +101,7 @@ let translate (globals, functions, structs) =
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.StringLit s -> let l = L.define_global "" (L.const_stringz context s) the_module in
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) p_t 
+      | A.Char_Lit c -> L.const_int i8_t (Char.code c)
       | A.Noexpr -> L.const_int i32_t 0
  in
 
@@ -102,6 +109,7 @@ let translate (globals, functions, structs) =
         A.Int -> L.const_int i32_t 0
       | A.Float -> L.const_float f_t 0.0
       | A.Bool -> L.const_int i1_t 0
+      | A.Char -> L.const_int i8_t 0
       | A.String -> get_init_val(A.StringLit "")
   in
 
@@ -110,6 +118,7 @@ let translate (globals, functions, structs) =
         A.NumLit i -> L.const_int i32_t i
       | A.FloatLit f -> L.const_float f_t f
       | A.StringLit s -> L.build_global_stringptr s "tmp" builder
+      | A.Char_Lit c -> L.const_int i8_t (Char.code c)
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id s -> L.build_load (lookup g_map l_map s) s builder
@@ -173,10 +182,14 @@ let translate (globals, functions, structs) =
             L.build_call string_length_func (Array.of_list x) "strlen" builder
       | A.Call("string_compare", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call string_compare_func (Array.of_list x) "strcmp" builder
+      | A.Call("to_lower", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call to_lower_func (Array.of_list x) "char_lower" builder
       | A.Call ("print_float", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
              L.build_call printf_func [| string_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
+      | A.Call ("print_char", [e]) ->
+             L.build_call printf_func [| char_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
          let actuals = List.rev (List.map (expr builder g_map l_map) (List.rev act)) in
