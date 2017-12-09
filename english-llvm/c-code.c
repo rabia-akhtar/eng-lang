@@ -1,5 +1,5 @@
 /*
- *  A function illustrating how to link C code to code generated from LLVM 
+ *  C - Code 
  */
 
 #include <stdio.h>
