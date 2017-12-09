@@ -1,8 +1,7 @@
 int main() {
-  print_string("Hello World");
   print_all("Hello World");
-  print_all(1);
-  print_all(100);
+  print_all(7);
+  print_all(100.98);
   print_all(true);
   print_all(-1);
   print_all(100+1);
