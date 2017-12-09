@@ -76,11 +76,18 @@ let translate (globals, functions, structs) =
   let to_lower_t = L.function_type i8_t [| i8_t |] in 
   let to_lower_func = L.declare_function "char_lower" to_lower_t the_module in
 
+  (* Declare c code as string_clean) *)
+  let string_clean_t = L.function_type p_t [| p_t |] in 
+  let string_clean_func = L.declare_function "string_clean" string_clean_t the_module in
+
+  (* Declare c code as string_append) *)
+  let string_append_t = L.function_type p_t [| p_t; p_t|] in 
+  let string_append_func = L.declare_function "string_append" string_append_t the_module in
+
   let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
   let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
   let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
   let char_format_str builder = L.build_global_stringptr "%c\n" "fmt" builder in
-
 
   (* Return the value for a variable or formal argument *)
   let lookup g_map l_map n = try StringMap.find n l_map
@@ -192,7 +199,6 @@ let translate (globals, functions, structs) =
       | A.Assign (s, e) -> let e' = expr builder g_map l_map e in
                      ignore (L.build_store e' (lookup g_map l_map s) builder); e'
       | A.Call ("print", [e]) 
-
       | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str builder; (expr builder g_map l_map e) |]
                                  "printf" builder
       | A.Call ("printbig", [e]) -> L.build_call printbig_func [| (expr builder g_map l_map e) |] "printbig" builder
@@ -210,6 +216,10 @@ let translate (globals, functions, structs) =
             L.build_call string_compare_func (Array.of_list x) "strcmp" builder
       | A.Call("to_lower", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call to_lower_func (Array.of_list x) "char_lower" builder
+      | A.Call("string_clean", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call string_clean_func (Array.of_list x) "string_clean" builder
+      | A.Call("string_append", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call string_append_func (Array.of_list x) "string_append" builder
       | A.Call ("print_float", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->

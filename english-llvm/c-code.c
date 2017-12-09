@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * Font information: one byte per row, 8 rows per character
@@ -70,11 +72,49 @@ char char_lower(char c)
   return tolower(c);
 }
 
+/* TODO: ADD MORE STOP WORDS AND ADD PUNCUATION AND CASE CHECKING */
+int check_word(char * c){
+    char ch_arr[5][10] = {
+                         "a", "an", "the", "but", "is"
+                     };
+    for(int i = 0; i < 5; i++)
+    {
+      if (strcmp(c, ch_arr[i]) == 0){
+        return 0;
+      }
+    }
+    return 1;
+  
+}
+
+char* string_clean(char*c){
+  char * result = malloc(sizeof(c));
+  char * next = strtok(c," ");
+  while (next != NULL)
+  {
+    if (check_word(next) != 0){
+    strcat(result, next);
+    strcat(result, " ");
+    }
+    printf ("%s\n",next);
+    next = strtok(NULL, " ");
+  }
+  return result;
+}
+
+char* string_append(char*a, char*b){
+  char * result = malloc(sizeof(a) + sizeof(b));
+  strcat(result, a);
+  strcat(result, b);
+  return result;
+}
+
 #ifdef BUILD_TEST
 int main()
 {
-  char s[] = "HELLO WORLD09AZ";
-  char *c;
-  for ( c = s ; *c ; c++) printbig(*c);
+ 
+ char * test = "this is the emily";
+ printf(string_clean(test));
+
 }
 #endif

@@ -112,9 +112,19 @@ let check (globals, functions, structs) =
      { typ = Void; fname = "print_char"; formals = [(Char, "x")];
        locals = []; body = [] }
 
+       (StringMap.add "string_clean"
+     { typ = String; fname = "string_clean"; formals = 
+     [(String, "x")]; 
+       locals = []; body = [] }
+
+       (StringMap.add "string_append"
+     { typ = String; fname = "string_append"; formals = 
+     [(String, "x"); (String, "x")]; 
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] })))))))))))))
+       locals = []; body = [] })))))))))))))))
 
    in
 
