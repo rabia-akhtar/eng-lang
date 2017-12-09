@@ -9,12 +9,12 @@ let trd (_,_,c) = c;;
 
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT DECREMENT INCREMENT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 
 %token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID
-%token INT CHAR FLOAT BOOL VOID STRING STRUCT TRUE FALSE
+%token INT CHAR FLOAT BOOL VOID STRING ARRAY STRUCT TRUE FALSE
 %token <int> NUM_LIT
 %token <float> FLOAT_LIT
 %token <string> STRING_LIT
@@ -139,6 +139,7 @@ expr:
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
 
+
 actuals_opt:
     /* nothing */ { [] }
   | actuals_list  { List.rev $1 }
@@ -146,3 +147,7 @@ actuals_opt:
 actuals_list:
     expr                    { [$1] }
   | actuals_list COMMA expr { $3 :: $1 }
+
+arr_lit:
+    expr {[$1]} 
+  | arr_lit COMMA expr {$3 :: $1}
