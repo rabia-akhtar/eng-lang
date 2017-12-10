@@ -9,11 +9,12 @@ let trd (_,_,c) = c;;
 
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
-%token PLUS MINUS TIMES DIVIDE ASSIGN NOT
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA
+%token PLUS MINUS TIMES DIVIDE ASSIGN NOT DECREMENT INCREMENT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
+
 %token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID
-%token INT CHAR FLOAT BOOL VOID STRING STRUCT TRUE FALSE
+%token INT CHAR FLOAT BOOL VOID STRING ARRAY STRUCT TRUE FALSE
 %token <int> NUM_LIT
 %token <float> FLOAT_LIT
 %token <string> STRING_LIT
@@ -23,7 +24,8 @@ let trd (_,_,c) = c;;
 
 %nonassoc NOELSE
 %nonassoc ELSE
-%right ASSIGN
+%right ASSIGN 
+
 %left OR
 %left AND
 %left EQ NEQ
@@ -106,6 +108,9 @@ expr_opt:
     /* nothing */ { Noexpr }
   | expr          { $1 }
 
+id:
+  ID               { Id($1) }
+
 expr:
     NUM_LIT          { NumLit($1) }
   | FLOAT_LIT        { FloatLit($1) }
@@ -114,6 +119,8 @@ expr:
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }
+  | id INCREMENT   { Pop($1, Inc) }
+  | id DECREMENT   { Pop($1, Dec) }
   | expr PLUS   expr { Binop ($1, Add,   $3) }
   | expr MINUS  expr { Binop ($1, Sub,   $3) }
   | expr TIMES  expr { Binop ($1, Mult,  $3) }
@@ -128,9 +135,10 @@ expr:
   | expr OR     expr { Binop ($1, Or,    $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
-  | ID ASSIGN expr   { Assign($1,        $3) }
+  | expr ASSIGN expr   { Assign($1,        $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
+
 
 actuals_opt:
     /* nothing */ { [] }
@@ -139,3 +147,7 @@ actuals_opt:
 actuals_list:
     expr                    { [$1] }
   | actuals_list COMMA expr { $3 :: $1 }
+
+arr_lit:
+    expr {[$1]} 
+  | arr_lit COMMA expr {$3 :: $1}

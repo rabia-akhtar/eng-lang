@@ -1,0 +1,17 @@
+/*
+ * Test for print_all function.
+ *
+ * print_all should print int, double, float, boolean, and binary and single operators.
+ */
+
+int main()
+{
+  print_all("Hello World");
+  print_all(7);
+  print_all(100.98);
+  print_all(true);
+  print_all(-1);
+  print_all(100+1);
+  print_all('a');
+  return 0;
+}

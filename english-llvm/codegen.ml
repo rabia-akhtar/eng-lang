@@ -23,7 +23,6 @@ let translate (globals, functions, structs) =
   let the_module = L.create_module context "English"
   and i32_t  = L.i32_type  context
   and i8_t   = L.i8_type   context
-  and i64_t   = L.i64_type   context
   and p_t  = L.pointer_type (L.i8_type (context))
   and i1_t   = L.i1_type   context
   and f_t    = L.double_type context
@@ -81,6 +80,7 @@ let translate (globals, functions, structs) =
   let string_format_str builder = L.build_global_stringptr "%s\n" "fmt" builder in
   let char_format_str builder = L.build_global_stringptr "%c\n" "fmt" builder in
 
+
   (* Return the value for a variable or formal argument *)
   let lookup g_map l_map n = try StringMap.find n l_map
         with Not_found -> StringMap.find n g_map in
@@ -102,18 +102,21 @@ let translate (globals, functions, structs) =
       | A.Float    -> float_format_str b
       | A.String   -> string_format_str b
       | A.Bool     -> int_format_str b
+      | A.Char     -> char_format_str b
       | _ -> raise (Failure ("Invalid printf type"))
   in
 
   (* get type *)
-  let rec gen_type = function
+  let rec gen_type g_map l_map = function
       A.NumLit _ -> A.Int
     | A.FloatLit _ -> A.Float
     | A.StringLit _ -> A.String
     | A.BoolLit _ -> A.Bool
-    | A.Unop(_,e) -> gen_type e
-    | A.Binop(e1,_,_) -> gen_type e1
+    | A.CharLit _ -> A.Char
+    | A.Unop(_,e) -> (gen_type g_map l_map) e
+    | A.Binop(e1,_,_) -> (gen_type g_map l_map) e1
     | A.Noexpr -> A.Void
+    | _ -> raise (Failure ("Type not found"))
 
   in
 
@@ -125,6 +128,7 @@ let translate (globals, functions, structs) =
       L.const_bitcast (L.const_gep l [|L.const_int i32_t 0|]) p_t 
       | A.CharLit c -> L.const_int i8_t (Char.code c)
       | A.Noexpr -> L.const_int i32_t 0
+      | _ -> raise (Failure ("not found"))
  in
 
  let get_init_noexpr = function
@@ -133,6 +137,7 @@ let translate (globals, functions, structs) =
       | A.Bool -> L.const_int i1_t 0
       | A.Char -> L.const_int i8_t 0
       | A.String -> get_init_val(A.StringLit "")
+      | _ -> raise (Failure ("not found"))
   in
 
   (* Construct code for an expression; return its value *)
@@ -185,9 +190,17 @@ let translate (globals, functions, structs) =
               else
                 L.build_neg)
             | A.Not     -> L.build_not) e' "tmp" builder
+       | A.Pop(e, op) -> let e' = expr builder g_map l_map e in
+       (match op with
+        | A.Inc -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Add, A.NumLit(1))))); e'                 
+        | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')
+           
          
-      | A.Assign (s, e) -> let e' = expr builder g_map l_map e in
-                     ignore (L.build_store e' (lookup g_map l_map s) builder); e'
+      | A.Assign (e1, e2) -> let e2' = expr builder g_map l_map e2 in
+      (match e1 with
+        A.Id s -> ignore (L.build_store e2' (lookup g_map l_map s) builder); e2'
+        | _ -> raise (Failure ("not found"))
+      )
       | A.Call ("print", [e]) 
 
       | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str builder; (expr builder g_map l_map e) |]
@@ -213,7 +226,7 @@ let translate (globals, functions, structs) =
              L.build_call printf_func [| string_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_all", [e]) ->
           let e' = expr builder g_map l_map e in
-          let e_type = (gen_type) e in
+          let e_type = (gen_type) g_map l_map e in
           L.build_call printf_func [| (format_str e_type builder) ; e' |] "printf" builder
       | A.Call ("print_char", [e]) ->
              L.build_call printf_func [| char_format_str builder ; (expr builder g_map l_map e) |] "printf" builder

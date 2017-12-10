@@ -119,7 +119,7 @@ let check (globals, functions, structs) =
    in
 
   (* Accepted types for print_all *)
-  let print_types = [String; Int; Bool; Float] in
+  let print_types = [String; Int; Bool; Float; Char] in
 
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
@@ -193,8 +193,16 @@ let check (globals, functions, structs) =
 	       | Not when t = Bool -> Bool
          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
 	  		   string_of_typ t ^ " in " ^ string_of_expr ex)))
+      | Pop(e, op) as ex -> let t = expr e in
+        (match op with
+          | Inc | Dec -> (match t with 
+                           Int -> Int
+                         | Float -> Float
+                         | _ -> raise (Failure ("illegal postfix operator " ^ string_of_pop op ^
+                                              string_of_typ t ^ " in " ^ string_of_expr ex)))
+        )
       | Noexpr -> Void
-      | Assign(var, e) as ex -> let lt = type_of_identifier var
+      | Assign(var, e) as ex -> let lt = expr var
                                 and rt = expr e in
         check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
 				     " = " ^ string_of_typ rt ^ " in " ^ 

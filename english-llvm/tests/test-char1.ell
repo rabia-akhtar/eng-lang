@@ -2,5 +2,5 @@ int main(){
 	char c = 'A';
 	char a = to_lower(c);
 	print_char(a);
-	return(0);
+	return (0);
 }
