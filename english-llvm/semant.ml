@@ -36,6 +36,31 @@ let check (globals, functions, structs) =
   let check_assign lvaluet rvaluet err =
      if lvaluet == rvaluet then lvaluet else raise err
   in
+
+  (* Check function declrations *)
+  let check_func_decl func_name =
+    if List.mem func_name (List.map (fun fd -> fd.fname) functions)
+  then raise (Failure ("function may not be defined as " ^ func_name))
+  in
+
+
+  check_func_decl "printb";
+  check_func_decl "printbig";
+  check_func_decl "print_float";
+  check_func_decl "print_all";
+  check_func_decl "open";
+  check_func_decl "close";
+  check_func_decl "read";
+  check_func_decl "write";
+  check_func_decl "string_length";
+  check_func_decl "string_compare";
+  check_func_decl "to_lower";
+  check_func_decl "print_char";
+  check_func_decl "print_string";
+ 
+
+
+
    
   (**** Checking Global Variables ****)
 
