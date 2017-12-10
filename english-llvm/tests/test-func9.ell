@@ -1,0 +1,9 @@
+float test(int a) {
+	print(a);
+	return 1.2;
+}
+
+int main() {
+	print_float(test(1));
+	return 0;
+}

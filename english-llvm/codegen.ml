@@ -329,7 +329,7 @@ in
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.A.typ with
         A.Void -> L.build_ret_void
-      | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
+      | t -> L.build_ret (get_init_noexpr t))
   in
 
   List.iter build_function_body functions;
