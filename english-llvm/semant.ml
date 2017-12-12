@@ -66,6 +66,26 @@ let check (globals, functions, structs) =
   report_duplicate (fun n -> "duplicate global " ^ n) 
     (List.map (fun (VarDecl(_,n,_)) -> n)  globals);
 
+  (* allowed initiation types *)
+  let globalInitTyps = function
+      NumLit _ -> Int
+      | FloatLit _ -> Float
+      | BoolLit _ -> Bool
+      | StringLit _ -> String
+      | CharLit _ -> Char
+      | _ -> raise (Failure ("Illegal global initialization"))
+  in
+
+  let checkGlobalInit = function
+    VarDecl(t,n,e) -> if e != Noexpr then
+      let typ = globalInitTyps e in
+        if t != typ 
+          then raise (Failure ("Global initialization type does not match " ^ n ^ " " ^ string_of_expr e)) 
+  in
+
+  (* check assignment types *)
+  List.iter checkGlobalInit globals; 
+
   (**** Checking Functions ****)
 
   if List.mem "print" (List.map (fun fd -> fd.fname) functions)
@@ -274,7 +294,14 @@ let check (globals, functions, structs) =
       | While(p, s) -> check_bool_expr p; stmt s
     in
 
-    stmt (Block func.body)
-   
+    let check_var_init = function 
+      VarDecl(t,_,e) as ex -> if e != Noexpr then
+        let v = expr e in
+          if (t != v) then
+            raise (Failure ("illegal initialization of" ^ string_of_typ t ^
+             " = " ^ string_of_typ v ^ " in " ^ string_of_vdecl ex)) in
+
+    stmt (Block func.body);
+    List.iter check_var_init func.locals
   in
   List.iter check_function functions
