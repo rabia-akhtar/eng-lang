@@ -70,6 +70,11 @@ char char_lower(char c)
   return tolower(c);
 }
 
+char strget(char* c, int x)
+{
+  return *(c + x);
+}
+
 #ifdef BUILD_TEST
 int main()
 {

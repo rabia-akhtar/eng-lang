@@ -135,8 +135,8 @@ let check (globals, functions, structs) =
      [(String, "x"); (String, "y")]; 
        locals = []; body = [] }
 
-       (StringMap.add "string_length"
-     { typ = Int; fname = "string_length"; formals = 
+       (StringMap.add "strlen"
+     { typ = Int; fname = "strlen"; formals = 
      [(String, "x")]; 
        locals = []; body = [] }
 
@@ -145,9 +145,34 @@ let check (globals, functions, structs) =
      [(String, "x"); (String, "x")]; 
        locals = []; body = [] }
 
+        (StringMap.add "strcat"
+     { typ = String; fname = "strcat"; formals = 
+     [(String, "x"); (String, "x")]; 
+       locals = []; body = [] }
+
+        (StringMap.add "strcpy"
+     { typ = String; fname = "strcpy"; formals = 
+     [(String, "x"); (String, "x")]; 
+       locals = []; body = [] }
+
+        (StringMap.add "strget"
+     { typ = Char; fname = "strcat"; formals = 
+     [(String, "x"); (Int, "y")]; 
+       locals = []; body = [] }
+
        (StringMap.add "to_lower"
      { typ = Char; fname = "to_lower"; formals = 
      [(Char, "x")]; 
+       locals = []; body = [] }
+
+       (StringMap.add "calloc"
+     { typ = String; fname = "calloc"; formals = 
+     [(Int, "x"); (Int, "x")]; 
+       locals = []; body = [] }
+
+        (StringMap.add "free"
+     { typ = String; fname = "free"; formals = 
+     [(String, "x") ]; 
        locals = []; body = [] }
 
        (StringMap.add"print_char"
@@ -156,7 +181,7 @@ let check (globals, functions, structs) =
 
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] })))))))))))))
+       locals = []; body = [] }))))))))))))))))))
 
    in
 

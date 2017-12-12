@@ -1,0 +1,9 @@
+int main(){
+	string s1 = "hello world";
+	string s2 = calloc(1, 20);
+	strcpy(s2, s1);
+	print_string(s1);
+	print_string(s2);
+	free(s2);
+	return(0);
+}

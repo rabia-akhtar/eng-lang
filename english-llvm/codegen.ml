@@ -63,17 +63,37 @@ let translate (globals, functions, structs) =
   let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
   let read_func = L.declare_function "fread" read_t the_module in
 
-  (* Declare the built-in strlen() function as string_length() *)
-  let string_length_t = L.function_type i32_t [| p_t |] in 
-  let string_length_func = L.declare_function "strlen" string_length_t the_module in
+  (* Declare the built-in strlen() function  *)
+  let strlen_t = L.function_type i32_t [| p_t |] in 
+  let strlen_func = L.declare_function "strlen" strlen_t the_module in
 
-  (* Declare the built-in strcmp() function as string_length() *)
+  (* Declare the built-in strcmp() function *)
   let strcmp_t = L.function_type i32_t [| p_t; p_t|] in 
   let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
+
+  (* Declare the built-in strcat() function *)
+  let strcat_t = L.function_type p_t [| p_t; p_t|] in 
+  let strcat_func = L.declare_function "strcat" strcat_t the_module in
+
+  (* Declare the built-in strcpy() function *)
+  let strcpy_t = L.function_type p_t [| p_t; p_t|] in 
+  let strcpy_func = L.declare_function "strcpy" strcpy_t the_module in
+
+  (* Declare the built-in strget() function *)
+  let strget_t = L.function_type i8_t [| p_t; i32_t|] in 
+  let strget_func = L.declare_function "strget" strget_t the_module in
 
   (* Declare c code as string_lower() *)
   let to_lower_t = L.function_type i8_t [| i8_t |] in 
   let to_lower_func = L.declare_function "char_lower" to_lower_t the_module in
+
+  (* Declare heap storage function *)
+  let calloc_t = L.function_type p_t [| i32_t ; i32_t|] in 
+  let calloc_func = L.declare_function "calloc" calloc_t the_module in
+
+  (* Declare free from heap *)
+  let free_t = L.function_type p_t [| p_t |] in 
+  let free_func = L.declare_function "free" free_t the_module in
 
   let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
   let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
@@ -214,12 +234,22 @@ let translate (globals, functions, structs) =
             L.build_call read_func (Array.of_list x) "fread" builder
       | A.Call("write", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call write_func (Array.of_list x) "fputs" builder
-      | A.Call("string_length", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
-            L.build_call string_length_func (Array.of_list x) "strlen" builder
+      | A.Call("strlen", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strlen_func (Array.of_list x) "strlen" builder
       | A.Call("strcmp", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call strcmp_func (Array.of_list x) "strcmp" builder
+      | A.Call("strcat", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strcat_func (Array.of_list x) "strcat" builder
+      | A.Call("strcpy", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strcpy_func (Array.of_list x) "strcpy" builder
+      | A.Call("strget", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strget_func (Array.of_list x) "strget" builder
       | A.Call("to_lower", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call to_lower_func (Array.of_list x) "char_lower" builder
+      | A.Call("calloc", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call calloc_func (Array.of_list x) "calloc" builder
+      | A.Call("free", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call free_func (Array.of_list x) "free" builder
       | A.Call ("print_float", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
