@@ -43,7 +43,7 @@ let check (globals, functions, structs) =
   then raise (Failure ("function may not be defined as " ^ func_name))
   in
 
-
+  (* check all reserved function names *)
   check_func_decl "printb";
   check_func_decl "printbig";
   check_func_decl "print_float";
@@ -57,9 +57,6 @@ let check (globals, functions, structs) =
   check_func_decl "to_lower";
   check_func_decl "print_char";
   check_func_decl "print_string";
- 
-
-
 
    
   (**** Checking Global Variables ****)
@@ -123,8 +120,8 @@ let check (globals, functions, structs) =
      [(String, "x")]; 
        locals = []; body = [] }
 
-       (StringMap.add "string_compare"
-     { typ = Int; fname = "string_compare"; formals = 
+       (StringMap.add "strcmp"
+     { typ = Int; fname = "strcmp"; formals = 
      [(String, "x"); (String, "x")]; 
        locals = []; body = [] }
 

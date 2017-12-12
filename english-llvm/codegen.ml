@@ -68,8 +68,8 @@ let translate (globals, functions, structs) =
   let string_length_func = L.declare_function "strlen" string_length_t the_module in
 
   (* Declare the built-in strcmp() function as string_length() *)
-  let string_compare_t = L.function_type i32_t [| p_t; p_t|] in 
-  let string_compare_func = L.declare_function "strcmp" string_compare_t the_module in
+  let strcmp_t = L.function_type i32_t [| p_t; p_t|] in 
+  let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
 
   (* Declare c code as string_lower() *)
   let to_lower_t = L.function_type i8_t [| i8_t |] in 
@@ -216,8 +216,8 @@ let translate (globals, functions, structs) =
             L.build_call write_func (Array.of_list x) "fputs" builder
       | A.Call("string_length", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call string_length_func (Array.of_list x) "strlen" builder
-      | A.Call("string_compare", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
-            L.build_call string_compare_func (Array.of_list x) "strcmp" builder
+      | A.Call("strcmp", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strcmp_func (Array.of_list x) "strcmp" builder
       | A.Call("to_lower", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call to_lower_func (Array.of_list x) "char_lower" builder
       | A.Call ("print_float", [e]) ->
