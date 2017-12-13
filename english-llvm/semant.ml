@@ -21,29 +21,30 @@ let check (globals, functions, structs) =
     in helper (List.sort compare list)
   in
 
-  let find_sdecl_from_sname struct_type_name =
-    try List.find (fun s-> s.sname= struct_type_name) structs 
-      with Not_found -> raise (Failure("Struct of name " ^ struct_type_name ^ "not found.")) 
+  (* Check struct name and recursive definition *)
+  let find_sdecl_from_sname struct_t_name =
+    try List.find (fun t-> t.sname= struct_t_name) structs 
+      with Not_found -> raise (Failure("Struct " ^ struct_t_name ^ "not found")) 
   in
-  let rec check_recursive_struct_helper sdecl seen_set =
-    let check_if_repeat struct_type_name =
-      let found = StringSet.mem struct_type_name seen_set in
-      if found then raise (Failure ("recursive struct definition"))
-      else check_recursive_struct_helper (find_sdecl_from_sname struct_type_name)  (StringSet.add struct_type_name seen_set)
+  let rec check_rec_struct_h sdecl structs_known_set =
+    let check_for_repetition struct_t_name =
+      if StringSet.mem struct_t_name structs_known_set 
+      then raise (Failure ("recursive struct definition"))
+      else check_rec_struct_h (find_sdecl_from_sname struct_t_name)  
+      (StringSet.add struct_t_name structs_known_set)
     in
-    let is_struct_field = function
-      (Struct s, _) -> check_if_repeat s
-     | _ -> () 
+    let struct_field_check = function
+      (Struct s, _) -> check_for_repetition s
+      | _ -> () 
     in
     let sformals_list = List.map (fun (VarDecl(t, n, _)) -> (t, n)) sdecl.sformals in
-    List.iter (is_struct_field) sformals_list
+    List.iter (struct_field_check) sformals_list
   in
   let check_recursive_struct sdecl =
-     check_recursive_struct_helper sdecl StringSet.empty    
+     check_rec_struct_h sdecl StringSet.empty    
   in
   let _ = List.map check_recursive_struct structs
   in
-
 
   (* Raise an exception if a given binding is to a void type *)
   let check_not_void_f exceptf = function
@@ -62,18 +63,18 @@ let check (globals, functions, structs) =
      if lvaluet == rvaluet then lvaluet else raise err
   in
 
-  let match_struct_to_accessor a b = 
-    let  s1 = try List.find (fun s-> s.sname=a) structs 
-      with Not_found -> raise (Failure("Struct of name " ^ a ^ "not found.")) in
-    let sformals = List.map (fun (VarDecl(t, n, _)) -> (t, n)) s1.sformals in
-    try fst( List.find (fun s-> snd(s)= b) sformals) with
-  Not_found -> raise (Failure("Struct " ^ a ^ " does not have field " ^ b))
+  let resolve_struct_access sname field = 
+    let  s = try List.find (fun t -> t.sname = sname) structs 
+      with Not_found -> raise (Failure("Struct " ^ sname ^ " not found")) in
+    let sformals = List.map (fun (VarDecl(t, n, _)) -> (t, n)) s.sformals in
+    try fst( List.find (fun s -> snd(s) = field) sformals) with
+  Not_found -> raise (Failure("Field " ^ field ^ " not found in Struct" ^ sname))
   in
 
-  let check_access lvaluet rvalues =
-     match lvaluet with
-       Struct s -> match_struct_to_accessor s rvalues
-       | _ -> raise (Failure(string_of_typ lvaluet ^ " is not a struct"))
+  let check_access lhs rhs =
+     match lhs with
+       Struct s -> resolve_struct_access s rhs
+       | _ -> raise (Failure(string_of_typ lhs^ " is not a struct"))
   
   in
 
@@ -285,8 +286,7 @@ let check (globals, functions, structs) =
               string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
               string_of_typ t2 ^ " in " ^ string_of_expr e))
         )
-      | Dot(e1, field) -> let lt = expr e1 in
-         check_access (lt) (field)
+      | Dot(e, field) -> check_access (expr e) field
       | Unop(op, e) as ex -> let t = expr e in
 	     (match op with
 	         Neg when t = Int -> Int

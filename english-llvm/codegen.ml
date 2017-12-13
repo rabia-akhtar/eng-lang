@@ -29,18 +29,17 @@ let translate (globals, functions, structs) =
   and void_t = L.void_type context
 in 
 
-let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 10
+let struct_type_table:(string, L.lltype) Hashtbl.t = Hashtbl.create 10
 in 
 
-let declare_struct_typ sdecl =
+let make_struct_type sdecl =
   let struct_t = L.named_struct_type context sdecl.A.sname in
-  Hashtbl.add struct_types sdecl.A.sname struct_t in 
-  let _  =
-    List.map declare_struct_typ structs 
+  Hashtbl.add struct_type_table sdecl.A.sname struct_t in 
+  let _  = List.map make_struct_type structs 
 in 
 
-let find_struct_typ name = try Hashtbl.find struct_types name
-  with Not_found -> raise(Failure("Struct not found"))
+let lookup_struct_type sname = try Hashtbl.find struct_type_table sname
+  with Not_found -> raise(Failure("Struct name not found"))
 in 
 let ltype_of_typ = function
       A.Int -> i32_t
@@ -49,33 +48,30 @@ let ltype_of_typ = function
     | A.Void -> void_t
     | A.String -> p_t
     | A.Char -> i8_t
-    | A.Struct(sname) -> find_struct_typ sname
+    | A.Struct(sname) -> lookup_struct_type sname
     in
 
-let define_struct_body sdecl =
-  let struct_typ = try Hashtbl.find struct_types sdecl.A.sname
+(* Define structs and fill hashtable *)
+let make_struct_body sdecl =
+  let struct_typ = try Hashtbl.find struct_type_table sdecl.A.sname
     with Not_found -> raise(Failure("struct type not defined")) in
-  let vdecl_types = List.map (fun (A.VarDecl(t, _, _)) -> t) sdecl.A.sformals in
-  let vdecl_lltypes = Array.of_list (List.map ltype_of_typ vdecl_types) in
-  L.struct_set_body struct_typ vdecl_lltypes true
-in  ignore(List.map define_struct_body structs);
+  let sformals_types = List.map (fun (A.VarDecl(t, _, _)) -> t) sdecl.A.sformals in
+  let sformals_lltypes = Array.of_list (List.map ltype_of_typ sformals_types) in
+  L.struct_set_body struct_typ sformals_lltypes true
+in  ignore(List.map make_struct_body structs);
 
-let struct_field_index_list =
-  let handle_list m individual_struct = 
-    (*list of all field names for that struct*) 
-    let struct_field_name_list = List.map (fun (A.VarDecl(_, n, _)) -> n) individual_struct.A.sformals in
-    let increment n = n + 1 in
-    let add_field_and_index (m, i) field_name =
-      (*add each field and index to the second map*)
-      (StringMap.add field_name (increment i) m, increment i) in
-    (*struct_field_map is the second map, with key = field name and value = index*)
+let struct_field_indices =
+  let handles m one_struct = 
+    let struct_field_names = List.map (fun (A.VarDecl(_, n, _)) -> n) one_struct.A.sformals in
+    let add_one n = n + 1 in
+    let add_fieldindex (m, i) field_name =
+      (StringMap.add field_name (add_one i) m, add_one i) in
     let struct_field_map = 
-      List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list
+      List.fold_left add_fieldindex (StringMap.empty, -1) struct_field_names
     in
-    (*add field map (the first part of the tuple) to the main map*)
-    StringMap.add individual_struct.A.sname (fst struct_field_map) m  
+    StringMap.add one_struct.A.sname (fst struct_field_map) m  
   in
-  List.fold_left handle_list StringMap.empty structs  
+  List.fold_left handles StringMap.empty structs  
   in
 
 
@@ -197,7 +193,7 @@ let struct_field_index_list =
       | A.Bool -> L.const_int i1_t 0
       | A.Char -> L.const_int i8_t 0
       | A.String -> get_init_val(A.StringLit "")
-      | A.Struct(sname) -> L.const_named_struct (find_struct_typ sname) [||]
+      | A.Struct(sname) -> L.const_named_struct (lookup_struct_type sname) [||]
       | _ -> raise (Failure ("not found"))
   in
 
@@ -214,6 +210,7 @@ let struct_field_index_list =
     let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
     let builder = L.builder_at_end context (L.entry_block the_function) in
     
+  (* Return addr of lhs expr *)
   let addr_of_expr expr builder g_map l_map = match expr with
     A.Id(id) -> (lookup g_map l_map id) 
   | A.Dot (e1, field) ->
@@ -221,11 +218,11 @@ let struct_field_index_list =
       A.Id s -> let etype = fst( 
         let fdecl_locals = List.map (fun (A.VarDecl(t, n, _)) -> (t, n)) fdecl.A.locals in
         try List.find (fun n -> snd(n) = s) fdecl_locals
-        with Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop")))
+        with Not_found -> raise (Failure("Unable to find" ^ s )))
         in
         (try match etype with
           A.Struct t->
-            let index_number_list = StringMap.find t struct_field_index_list in
+            let index_number_list = StringMap.find t struct_field_indices in
             let index_number = StringMap.find field index_number_list in
             let struct_llvalue = lookup g_map l_map s in
             let access_llvalue = L.build_struct_gep struct_llvalue index_number "tmp" builder in
@@ -235,11 +232,6 @@ let struct_field_index_list =
        | _ -> raise (Failure("lhs not found")))
        | _ -> raise (Failure("addr not found"))
 
-  in
-
-  let string_option_to_string = function
-  None -> ""
-  | Some(s) -> s
   in
 
   (* Construct code for an expression; return its value *)
@@ -297,24 +289,22 @@ let struct_field_index_list =
         | A.Inc -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Add, A.NumLit(1))))); e'                 
         | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')
       
-      | A.Assign (e1, e2) -> 
-      let l_val = (addr_of_expr e1 builder g_map l_map)
-      in
+      | A.Assign (e1, e2) -> let l_val = (addr_of_expr e1 builder g_map l_map) in
       let e2' = expr builder g_map l_map e2 in
        ignore (L.build_store e2' l_val builder); e2'
 
-      | A.Dot (e1, field) ->
-       let llvalue = (addr_of_expr e1 builder g_map l_map) in 
-      let loaded_e1' = expr builder g_map l_map e1 in
-      let e1'_lltype = L.type_of loaded_e1' in
-      let e1'_struct_name_string_option = L.struct_name e1'_lltype in
-      let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
-      let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
-      let index_number = StringMap.find field index_number_list in
-      let access_llvalue = L.build_struct_gep llvalue index_number "gep_in_dotop" builder in
-      L.build_load access_llvalue "loaded_dotop" builder
-
-        
+      | A.Dot (e, field) -> let llvalue = (addr_of_expr e builder g_map l_map) in 
+      let built_e = expr builder g_map l_map e in
+      let built_e_lltype = L.type_of built_e in
+      let built_e_opt = L.struct_name built_e_lltype in
+      let built_e_name = (match built_e_opt with 
+                                  | None -> ""
+                                  | Some(s) -> s)                             
+      in
+      let indices = StringMap.find built_e_name struct_field_indices in
+      let index = StringMap.find field indices in
+      let access_llvalue = L.build_struct_gep llvalue index "tmp" builder in
+                           L.build_load access_llvalue "tmp" builder      
 
       | A.Call ("print", [e]) 
 
