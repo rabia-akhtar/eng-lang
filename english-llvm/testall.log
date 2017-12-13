@@ -440,6 +440,14 @@ cc -o test-while2.exe test-while2.s c-code.o
 diff -b test-while2.out tests/test-while2.out > test-while2.diff
 ###### SUCCESS
 
+###### Testing test-wordcount
+./english.native < tests/test-wordcount.ell > test-wordcount.ll
+/usr/local/opt/llvm/bin/llc test-wordcount.ll > test-wordcount.s
+cc -o test-wordcount.exe test-wordcount.s c-code.o
+./test-wordcount.exe
+diff -b test-wordcount.out tests/test-wordcount.out > test-wordcount.diff
+###### SUCCESS
+
 ###### Testing test-write1
 ./english.native < tests/test-write1.ell > test-write1.ll
 /usr/local/opt/llvm/bin/llc test-write1.ll > test-write1.s
@@ -611,6 +619,11 @@ diff -b fail-func27.err tests/fail-func27.err > fail-func27.diff
 ###### Testing fail-func28
 ./english.native < tests/fail-func28.ell 2> fail-func28.err >> testall.log
 diff -b fail-func28.err tests/fail-func28.err > fail-func28.diff
+###### SUCCESS
+
+###### Testing fail-func29
+./english.native < tests/fail-func29.ell 2> fail-func29.err >> testall.log
+diff -b fail-func29.err tests/fail-func29.err > fail-func29.diff
 ###### SUCCESS
 
 ###### Testing fail-func3

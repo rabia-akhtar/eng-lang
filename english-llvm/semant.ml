@@ -103,6 +103,7 @@ let check (globals, functions, structs) =
   check_func_decl "free";
   check_func_decl "print_char";
   check_func_decl "is_stop_word";
+  check_func_decl "word_count";
   check_func_decl "print_string";
 
    
@@ -230,9 +231,13 @@ let check (globals, functions, structs) =
      { typ = Int; fname = "is_stop_word"; formals = [(String, "x")];
        locals = []; body = [] }
 
+         (StringMap.add"word_count"
+     { typ = Int; fname = "word_count"; formals = [(String, "x")];
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] })))))))))))))))))))
+       locals = []; body = [] }))))))))))))))))))))
 
    in
 

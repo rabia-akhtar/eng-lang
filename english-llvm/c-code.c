@@ -96,6 +96,30 @@ int is_stop_word(char * c){
 
 }
 
+int word_count(char * str){
+  int count = 0;
+  int curr = 0;
+  while(*str != '\0'){
+    if (*str == ' ') {
+      if (curr == 1){
+        count = count + 1;
+        curr = 0;
+      }
+    }
+      
+      if(*str != ' '){
+        curr = 1;
+      }
+     str++;
+  }
+
+  if (curr == 1){
+    count = count + 1;
+  }
+
+  return count;
+}
+
 #ifdef BUILD_TEST
 int main()
 {
