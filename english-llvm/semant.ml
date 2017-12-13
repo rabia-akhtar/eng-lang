@@ -3,6 +3,7 @@
 open Ast
 
 module StringMap = Map.Make(String)
+module StringSet = Set.Make(String)
 
 (* Semantic checking of a program. Returns void if successful,
    throws an exception if something is wrong.
@@ -20,6 +21,30 @@ let check (globals, functions, structs) =
     in helper (List.sort compare list)
   in
 
+  let find_sdecl_from_sname struct_type_name =
+    try List.find (fun s-> s.sname= struct_type_name) structs 
+      with Not_found -> raise (Failure("Struct of name " ^ struct_type_name ^ "not found.")) 
+  in
+  let rec check_recursive_struct_helper sdecl seen_set =
+    let check_if_repeat struct_type_name =
+      let found = StringSet.mem struct_type_name seen_set in
+      if found then raise (Failure ("recursive struct definition"))
+      else check_recursive_struct_helper (find_sdecl_from_sname struct_type_name)  (StringSet.add struct_type_name seen_set)
+    in
+    let is_struct_field = function
+      (Struct s, _) -> check_if_repeat s
+     | _ -> () 
+    in
+    let sformals_list = List.map (fun (VarDecl(t, n, _)) -> (t, n)) sdecl.sformals in
+    List.iter (is_struct_field) sformals_list
+  in
+  let check_recursive_struct sdecl =
+     check_recursive_struct_helper sdecl StringSet.empty    
+  in
+  let _ = List.map check_recursive_struct structs
+  in
+
+
   (* Raise an exception if a given binding is to a void type *)
   let check_not_void_f exceptf = function
       (Void, n) -> raise (Failure (exceptf n))
@@ -35,6 +60,21 @@ let check (globals, functions, structs) =
      the given lvalue type *)
   let check_assign lvaluet rvaluet err =
      if lvaluet == rvaluet then lvaluet else raise err
+  in
+
+  let match_struct_to_accessor a b = 
+    let  s1 = try List.find (fun s-> s.sname=a) structs 
+      with Not_found -> raise (Failure("Struct of name " ^ a ^ "not found.")) in
+    let sformals = List.map (fun (VarDecl(t, n, _)) -> (t, n)) s1.sformals in
+    try fst( List.find (fun s-> snd(s)= b) sformals) with
+  Not_found -> raise (Failure("Struct " ^ a ^ " does not have field " ^ b))
+  in
+
+  let check_access lvaluet rvalues =
+     match lvaluet with
+       Struct s -> match_struct_to_accessor s rvalues
+       | _ -> raise (Failure(string_of_typ lvaluet ^ " is not a struct"))
+  
   in
 
   (* Check function declrations *)
@@ -196,14 +236,6 @@ let check (globals, functions, structs) =
        with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
 
-  let struct_decls = List.fold_left (fun m st -> StringMap.add st.sname st m) 
-                          StringMap.empty structs
-  in
-  
-  let struct_decl s = try StringMap.find s struct_decls
-      with Not_found -> raise (Failure ("unrecognized struct" ^ s))
-  in
-
   let _ = function_decl "main" in (* Ensure "main" is defined *)
 
   let check_function func =
@@ -253,6 +285,8 @@ let check (globals, functions, structs) =
               string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
               string_of_typ t2 ^ " in " ^ string_of_expr e))
         )
+      | Dot(e1, field) -> let lt = expr e1 in
+         check_access (lt) (field)
       | Unop(op, e) as ex -> let t = expr e in
 	     (match op with
 	         Neg when t = Int -> Int

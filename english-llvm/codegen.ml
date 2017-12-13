@@ -27,17 +27,57 @@ let translate (globals, functions, structs) =
   and i1_t   = L.i1_type   context
   and f_t    = L.double_type context
   and void_t = L.void_type context
-  and struct_t id = L.named_struct_type context id in
+in 
 
-  let ltype_of_typ = function
+let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 10
+in 
+
+let declare_struct_typ sdecl =
+  let struct_t = L.named_struct_type context sdecl.A.sname in
+  Hashtbl.add struct_types sdecl.A.sname struct_t in 
+  let _  =
+    List.map declare_struct_typ structs 
+in 
+
+let find_struct_typ name = try Hashtbl.find struct_types name
+  with Not_found -> raise(Failure("Struct not found"))
+in 
+let ltype_of_typ = function
       A.Int -> i32_t
     | A.Float -> f_t
     | A.Bool -> i1_t
     | A.Void -> void_t
     | A.String -> p_t
     | A.Char -> i8_t
-    | A.Struct id -> struct_t id 
+    | A.Struct(sname) -> find_struct_typ sname
     in
+
+let define_struct_body sdecl =
+  let struct_typ = try Hashtbl.find struct_types sdecl.A.sname
+    with Not_found -> raise(Failure("struct type not defined")) in
+  let vdecl_types = List.map (fun (A.VarDecl(t, _, _)) -> t) sdecl.A.sformals in
+  let vdecl_lltypes = Array.of_list (List.map ltype_of_typ vdecl_types) in
+  L.struct_set_body struct_typ vdecl_lltypes true
+in  ignore(List.map define_struct_body structs);
+
+let struct_field_index_list =
+  let handle_list m individual_struct = 
+    (*list of all field names for that struct*) 
+    let struct_field_name_list = List.map (fun (A.VarDecl(_, n, _)) -> n) individual_struct.A.sformals in
+    let increment n = n + 1 in
+    let add_field_and_index (m, i) field_name =
+      (*add each field and index to the second map*)
+      (StringMap.add field_name (increment i) m, increment i) in
+    (*struct_field_map is the second map, with key = field name and value = index*)
+    let struct_field_map = 
+      List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list
+    in
+    (*add field map (the first part of the tuple) to the main map*)
+    StringMap.add individual_struct.A.sname (fst struct_field_map) m  
+  in
+  List.fold_left handle_list StringMap.empty structs  
+  in
+
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -157,7 +197,49 @@ let translate (globals, functions, structs) =
       | A.Bool -> L.const_int i1_t 0
       | A.Char -> L.const_int i8_t 0
       | A.String -> get_init_val(A.StringLit "")
+      | A.Struct(sname) -> L.const_named_struct (find_struct_typ sname) [||]
       | _ -> raise (Failure ("not found"))
+  in
+
+
+ (* Declare each global variable; remember its value in a map *)
+  let global_vars =
+    let global_var m (A.VarDecl(_, n, e)) =
+      let init = get_init_val e in
+      StringMap.add n (L.define_global n init the_module) m in
+    List.fold_left global_var StringMap.empty globals in
+  
+  (* Fill in the body of the given function *)
+  let build_function_body fdecl =
+    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
+    let builder = L.builder_at_end context (L.entry_block the_function) in
+    
+  let addr_of_expr expr builder g_map l_map = match expr with
+    A.Id(id) -> (lookup g_map l_map id) 
+  | A.Dot (e1, field) ->
+       (match e1 with
+      A.Id s -> let etype = fst( 
+        let fdecl_locals = List.map (fun (A.VarDecl(t, n, _)) -> (t, n)) fdecl.A.locals in
+        try List.find (fun n -> snd(n) = s) fdecl_locals
+        with Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop")))
+        in
+        (try match etype with
+          A.Struct t->
+            let index_number_list = StringMap.find t struct_field_index_list in
+            let index_number = StringMap.find field index_number_list in
+            let struct_llvalue = lookup g_map l_map s in
+            let access_llvalue = L.build_struct_gep struct_llvalue index_number "tmp" builder in
+            access_llvalue
+        | _ -> raise (Failure("not found"))
+       with Not_found -> raise (Failure("not found" ^ s)))
+       | _ -> raise (Failure("lhs not found")))
+       | _ -> raise (Failure("addr not found"))
+
+  in
+
+  let string_option_to_string = function
+  None -> ""
+  | Some(s) -> s
   in
 
   (* Construct code for an expression; return its value *)
@@ -214,13 +296,26 @@ let translate (globals, functions, structs) =
        (match op with
         | A.Inc -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Add, A.NumLit(1))))); e'                 
         | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')
-           
-         
-      | A.Assign (e1, e2) -> let e2' = expr builder g_map l_map e2 in
-      (match e1 with
-        A.Id s -> ignore (L.build_store e2' (lookup g_map l_map s) builder); e2'
-        | _ -> raise (Failure ("not found"))
-      )
+      
+      | A.Assign (e1, e2) -> 
+      let l_val = (addr_of_expr e1 builder g_map l_map)
+      in
+      let e2' = expr builder g_map l_map e2 in
+       ignore (L.build_store e2' l_val builder); e2'
+
+      | A.Dot (e1, field) ->
+       let llvalue = (addr_of_expr e1 builder g_map l_map) in 
+      let loaded_e1' = expr builder g_map l_map e1 in
+      let e1'_lltype = L.type_of loaded_e1' in
+      let e1'_struct_name_string_option = L.struct_name e1'_lltype in
+      let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
+      let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
+      let index_number = StringMap.find field index_number_list in
+      let access_llvalue = L.build_struct_gep llvalue index_number "gep_in_dotop" builder in
+      L.build_load access_llvalue "loaded_dotop" builder
+
+        
+
       | A.Call ("print", [e]) 
 
       | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str builder; (expr builder g_map l_map e) |]
@@ -268,26 +363,14 @@ let translate (globals, functions, structs) =
          L.build_call fdef (Array.of_list actuals) result builder
     in
 
- (* Declare each global variable; remember its value in a map *)
-  let global_vars =
-    let global_var m (A.VarDecl(_, n, e)) =
-      let init = get_init_val e in
-      StringMap.add n (L.define_global n init the_module) m in
-    List.fold_left global_var StringMap.empty globals in
-  
-  (* Fill in the body of the given function *)
-  let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
-    let builder = L.builder_at_end context (L.entry_block the_function) in
-    
-    (* Construct the function's "locals": formal arguments and locally
+(* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
     let local_vars =
       let add_formal m (t, n) p = L.set_value_name n p;
-	    let local = L.build_alloca (ltype_of_typ t) n builder in
-	    ignore (L.build_store p local builder);
-	    StringMap.add n local m in
+      let local = L.build_alloca (ltype_of_typ t) n builder in
+      ignore (L.build_store p local builder);
+      StringMap.add n local m in
 
     let add_local m (A.VarDecl(t, n, e)) =
       let e' = match e with 
@@ -302,21 +385,7 @@ let translate (globals, functions, structs) =
     let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
           (Array.to_list (L.params the_function)) in
       List.fold_left add_local formals fdecl.A.locals in
-
-    (* Define structs *)
-  let struct_decls =
-    let struct_decl m sdecl =
-      let sname = sdecl.A.sname
-      and sformal_types =
-  Array.of_list (List.map (fun (A.VarDecl(t,_,_)) -> ltype_of_typ t) sdecl.A.sformals)
-      in let stype = L.struct_type context sformal_types in
-      StringMap.add sname (stype, sdecl.A.sformals) m in
-    List.fold_left struct_decl StringMap.empty structs in
-    let struct_lookup n = try StringMap.find n struct_decls
-  with Not_found -> raise (Failure ("struct " ^ n ^ " unrecognized")) 
-in
-
-
+      
     (* Invoke "f builder" if the current block doesn't already
        have a terminal (e.g., a branch). *)
     let add_terminal builder f =
