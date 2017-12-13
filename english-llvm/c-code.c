@@ -76,19 +76,6 @@ char strget(char* c, int x)
   return *(c + x);
 }
 
-int is_stop_word2(char * c){
-    char ch_arr[5][10] = {
-                         "a", "an", "the", "but", "is"
-                     };
-    for(int i = 0; i < 5; i++)
-    { 
-      if (strcmp(c, ch_arr[i]) == 0){
-        return 1;
-      }
-    }
-    return 0;
-}
-
 int is_stop_word(char * c){
   char word[100];
   char whitespace[100];
