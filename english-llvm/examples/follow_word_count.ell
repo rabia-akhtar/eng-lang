@@ -1,0 +1,79 @@
+/* this program shows an example of how an instructor can see which students followed the word count limit for an assignment */
+
+/* student struct*/
+struct Student {
+	string Name;
+	string Essay;
+};
+
+/* function checks if a string is 100 words or under */
+int follows_word_count(string essay){
+
+	int words = word_count(essay);
+	if (words < 101){
+		return 1;
+	}
+	return 0;
+}
+
+/* function reads in a file and returns the content in string format */
+string import_essay(string file_name){
+	string s1 = calloc(1, 2000);
+	file_ptr fp = open("tests/hello.txt", "rb");
+   	int size = read(s1, 1, 2000, fp);
+   	close(fp);
+   	return s1;	
+}
+
+
+int main(){
+	/* declare array of students who submitted an essay */
+	struct Student [5] students;
+
+	struct Student candice;
+	rabia.Name = "Candace";
+	rabia.Essay = import_essay("candace_essay.txt");
+	students[0] = candace;
+
+	struct Student emily;
+	rabia.Name = "Emily";
+	rabia.Essay = import_essay("emily_essay.txt");
+	students[1] = emily;
+
+	struct Student michele;
+	rabia.Name = "Michele";
+	rabia.Essay = import_essay("michele_essay.txt");
+	students[2] = michele;
+
+	struct Student nvita;
+	rabia.Name = "Nvita";
+	rabia.Essay = import_essay("nvita_essay.txt");
+	students[3] = nvita;
+
+	struct Student rabia;
+	rabia.Name = "Rabia";
+	rabia.Essay = import_essay("rabia_essay.txt");
+	students[4] = rabia;
+
+	/* check which students followed the word count */
+	int i;
+	for (i = 0; i< 5; i = i + 1){
+		if(follows_word_count(students[i].Essay) == 1){
+			print_string(students[i].Name);
+			print_string("'s essay follows the word count.");
+		}
+		else{
+			print_string(students[i].Name);
+			print_string("'s essay has too many words.");
+		}
+	}
+
+	/* free allocated memory */
+   	free(candace.Essay);
+   	free(emily.Essay);
+   	free(michele.Essay);
+   	free(nvita.Essay);
+   	free(rabia.Essay);
+   	
+	return(0);
+}
