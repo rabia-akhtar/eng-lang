@@ -93,8 +93,8 @@ let check (globals, functions, structs) =
   check_func_decl "close";
   check_func_decl "read";
   check_func_decl "write";
-  check_func_decl "string_length";
-  check_func_decl "string_compare";
+  check_func_decl "strlen";
+  check_func_decl "strcmp";
   check_func_decl "to_lower";
   check_func_decl "print_char";
   check_func_decl "print_string";
@@ -220,9 +220,13 @@ let check (globals, functions, structs) =
      { typ = Void; fname = "print_char"; formals = [(Char, "x")];
        locals = []; body = [] }
 
+         (StringMap.add"is_stop_word"
+     { typ = Int; fname = "is_stop_word"; formals = [(String, "x")];
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] }))))))))))))))))))
+       locals = []; body = [] })))))))))))))))))))
 
    in
 

@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 /*
  * Font information: one byte per row, 8 rows per character
@@ -73,6 +74,39 @@ char char_lower(char c)
 char strget(char* c, int x)
 {
   return *(c + x);
+}
+
+int is_stop_word2(char * c){
+    char ch_arr[5][10] = {
+                         "a", "an", "the", "but", "is"
+                     };
+    for(int i = 0; i < 5; i++)
+    { 
+      if (strcmp(c, ch_arr[i]) == 0){
+        return 1;
+      }
+    }
+    return 0;
+}
+
+int is_stop_word(char * c){
+  char word[100];
+  char whitespace[100];
+
+  FILE *file = fopen("stopwords.txt", "r");
+
+  while(!feof(file)) {
+      fscanf(file,"%[^ \n\t\r]s",word); 
+      if(strcmp(c, word) == 0){
+        fclose(file);
+        return 1;
+      }
+      fscanf(file,"%[ \n\t\r]s",whitespace); 
+  }
+
+  fclose(file);
+  return 0;
+
 }
 
 #ifdef BUILD_TEST

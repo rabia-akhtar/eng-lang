@@ -123,6 +123,10 @@ let struct_field_indices =
   let to_lower_t = L.function_type i8_t [| i8_t |] in 
   let to_lower_func = L.declare_function "char_lower" to_lower_t the_module in
 
+  (* Declare c code as is_stop_word() *)
+  let is_stop_word_t = L.function_type i32_t [| p_t |] in 
+  let is_stop_word_func = L.declare_function "is_stop_word" is_stop_word_t the_module in
+
   (* Declare heap storage function *)
   let calloc_t = L.function_type p_t [| i32_t ; i32_t|] in 
   let calloc_func = L.declare_function "calloc" calloc_t the_module in
@@ -335,6 +339,8 @@ let struct_field_indices =
             L.build_call calloc_func (Array.of_list x) "calloc" builder
       | A.Call("free", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call free_func (Array.of_list x) "free" builder
+      | A.Call("is_stop_word", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call is_stop_word_func (Array.of_list x) "is_stop_word" builder
       | A.Call ("print_float", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->

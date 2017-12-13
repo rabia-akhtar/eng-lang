@@ -1,0 +1,11 @@
+int main()
+{
+  int test1 = is_stop_word("is");
+  int test2 = is_stop_word("plt");
+  int test3 = is_stop_word("who");
+  int test4 = is_stop_word("didn't");
+  print(test1);
+  print(test2);
+  print(test3);
+  print(test4);
+}
