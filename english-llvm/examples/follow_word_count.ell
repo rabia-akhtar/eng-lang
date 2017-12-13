@@ -31,23 +31,23 @@ int main(){
 	struct Student [5] students;
 
 	struct Student candice;
-	rabia.Name = "Candace";
-	rabia.Essay = import_essay("candace_essay.txt");
+	candice.Name = "Candace";
+	candice.Essay = import_essay("candace_essay.txt");
 	students[0] = candace;
 
 	struct Student emily;
-	rabia.Name = "Emily";
-	rabia.Essay = import_essay("emily_essay.txt");
+	emily.Name = "Emily";
+	emily.Essay = import_essay("emily_essay.txt");
 	students[1] = emily;
 
 	struct Student michele;
-	rabia.Name = "Michele";
-	rabia.Essay = import_essay("michele_essay.txt");
+	michele.Name = "Michele";
+	michele.Essay = import_essay("michele_essay.txt");
 	students[2] = michele;
 
 	struct Student nvita;
-	rabia.Name = "Nvita";
-	rabia.Essay = import_essay("nvita_essay.txt");
+	nvita.Name = "Nvita";
+	nvita.Essay = import_essay("nvita_essay.txt");
 	students[3] = nvita;
 
 	struct Student rabia;
@@ -74,6 +74,6 @@ int main(){
    	free(michele.Essay);
    	free(nvita.Essay);
    	free(rabia.Essay);
-   	
+
 	return(0);
 }
