@@ -95,8 +95,14 @@ let check (globals, functions, structs) =
   check_func_decl "write";
   check_func_decl "strlen";
   check_func_decl "strcmp";
+  check_func_decl "strcat";
+  check_func_decl "strcpy";
+  check_func_decl "strget";
   check_func_decl "to_lower";
+  check_func_decl "calloc";
+  check_func_decl "free";
   check_func_decl "print_char";
+  check_func_decl "is_stop_word";
   check_func_decl "print_string";
 
    

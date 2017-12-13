@@ -528,9 +528,89 @@ diff -b fail-func11.err tests/fail-func11.err > fail-func11.diff
 diff -b fail-func12.err tests/fail-func12.err > fail-func12.diff
 ###### SUCCESS
 
+###### Testing fail-func13
+./english.native < tests/fail-func13.ell 2> fail-func13.err >> testall.log
+diff -b fail-func13.err tests/fail-func13.err > fail-func13.diff
+###### SUCCESS
+
+###### Testing fail-func14
+./english.native < tests/fail-func14.ell 2> fail-func14.err >> testall.log
+diff -b fail-func14.err tests/fail-func14.err > fail-func14.diff
+###### SUCCESS
+
+###### Testing fail-func15
+./english.native < tests/fail-func15.ell 2> fail-func15.err >> testall.log
+diff -b fail-func15.err tests/fail-func15.err > fail-func15.diff
+###### SUCCESS
+
+###### Testing fail-func16
+./english.native < tests/fail-func16.ell 2> fail-func16.err >> testall.log
+diff -b fail-func16.err tests/fail-func16.err > fail-func16.diff
+###### SUCCESS
+
+###### Testing fail-func17
+./english.native < tests/fail-func17.ell 2> fail-func17.err >> testall.log
+diff -b fail-func17.err tests/fail-func17.err > fail-func17.diff
+###### SUCCESS
+
+###### Testing fail-func18
+./english.native < tests/fail-func18.ell 2> fail-func18.err >> testall.log
+diff -b fail-func18.err tests/fail-func18.err > fail-func18.diff
+###### SUCCESS
+
+###### Testing fail-func19
+./english.native < tests/fail-func19.ell 2> fail-func19.err >> testall.log
+diff -b fail-func19.err tests/fail-func19.err > fail-func19.diff
+###### SUCCESS
+
 ###### Testing fail-func2
 ./english.native < tests/fail-func2.ell 2> fail-func2.err >> testall.log
 diff -b fail-func2.err tests/fail-func2.err > fail-func2.diff
+###### SUCCESS
+
+###### Testing fail-func20
+./english.native < tests/fail-func20.ell 2> fail-func20.err >> testall.log
+diff -b fail-func20.err tests/fail-func20.err > fail-func20.diff
+###### SUCCESS
+
+###### Testing fail-func21
+./english.native < tests/fail-func21.ell 2> fail-func21.err >> testall.log
+diff -b fail-func21.err tests/fail-func21.err > fail-func21.diff
+###### SUCCESS
+
+###### Testing fail-func22
+./english.native < tests/fail-func22.ell 2> fail-func22.err >> testall.log
+diff -b fail-func22.err tests/fail-func22.err > fail-func22.diff
+###### SUCCESS
+
+###### Testing fail-func23
+./english.native < tests/fail-func23.ell 2> fail-func23.err >> testall.log
+diff -b fail-func23.err tests/fail-func23.err > fail-func23.diff
+###### SUCCESS
+
+###### Testing fail-func24
+./english.native < tests/fail-func24.ell 2> fail-func24.err >> testall.log
+diff -b fail-func24.err tests/fail-func24.err > fail-func24.diff
+###### SUCCESS
+
+###### Testing fail-func25
+./english.native < tests/fail-func25.ell 2> fail-func25.err >> testall.log
+diff -b fail-func25.err tests/fail-func25.err > fail-func25.diff
+###### SUCCESS
+
+###### Testing fail-func26
+./english.native < tests/fail-func26.ell 2> fail-func26.err >> testall.log
+diff -b fail-func26.err tests/fail-func26.err > fail-func26.diff
+###### SUCCESS
+
+###### Testing fail-func27
+./english.native < tests/fail-func27.ell 2> fail-func27.err >> testall.log
+diff -b fail-func27.err tests/fail-func27.err > fail-func27.diff
+###### SUCCESS
+
+###### Testing fail-func28
+./english.native < tests/fail-func28.ell 2> fail-func28.err >> testall.log
+diff -b fail-func28.err tests/fail-func28.err > fail-func28.diff
 ###### SUCCESS
 
 ###### Testing fail-func3
