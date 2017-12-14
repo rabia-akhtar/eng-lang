@@ -1,0 +1,10 @@
+int main() {
+
+
+string[] a;
+int i;
+i = 2;
+a = ["hey","what's good","yo", "hey", "bye"];
+
+
+}

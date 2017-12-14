@@ -11,8 +11,11 @@ rule token = parse
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
-| '['      { LBRACK}
-| ']'      { RBRACK}
+| "{|"     { LINDEX }
+| "|}"     { RINDEX }
+| "of"     { OF }
+| "["      { LSQUARE }
+| "]"      { RSQUARE }
 | ';'      { SEMI }
 | ','      { COMMA }
 | '+'      { PLUS }
@@ -43,7 +46,6 @@ rule token = parse
 | "true"   { TRUE }
 | "false"  { FALSE }
 | "string" { STRING }
-| "array"  { ARRAY }
 | "char"   { CHAR }
 | "file_ptr" { STRING }
 | "struct" { STRUCT }

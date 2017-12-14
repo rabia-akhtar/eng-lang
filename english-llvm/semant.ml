@@ -1,6 +1,7 @@
 (* Semantic checking for the ELL compiler *)
 
 open Ast
+module A = Ast
 
 module StringMap = Map.Make(String)
 
@@ -78,7 +79,7 @@ let check (globals, functions, structs) =
   let built_in_decls =
 
       StringMap.add "print"
-     { typ = Void; fname = "print"; formals = [(Int, "x")];
+     { typ = Void; fname = "print"; formals = [(A.Simple(A.Int), "x")];
        locals = []; body = [] }
 
        (StringMap.add "printb"
@@ -86,43 +87,43 @@ let check (globals, functions, structs) =
        locals = []; body = [] }
 
         (StringMap.add "printbig"
-     { typ = Void; fname = "printbig"; formals = [(Int, "x")];
+     { typ = Void; fname = "printbig"; formals = [(A.Simple(A.Int), "x")];
        locals = []; body = [] }
 
         (StringMap.add "print_float"
-     { typ = Void; fname = "print_float"; formals = [(Float, "x")];
+     { typ = Void; fname = "print_float"; formals = [(A.Simple(A.Float), "x")];
        locals = []; body = [] }
 
        (StringMap.add "print_all"
-     { typ = Void; fname = "print_all"; formals = [(String, "x")];
+     { typ = Void; fname = "print_all"; formals = [(A.Simple(A.String), "x")];
        locals = []; body = [] }
 
        (StringMap.add "open"
-     { typ = String; fname = "open"; formals = 
-     [(String, "x"); (String, "y")]; locals = []; body = []}
+     { typ = A.Simple(A.String); fname = "open"; formals = 
+     [(A.Simple(String), "x"); (A.Simple(A.String), "y")]; locals = []; body = []}
 
        (StringMap.add "close"
      { typ = Void; fname = "close"; formals = 
-     [(String, "x")]; locals = []; body = []}
+     [(A.Simple(A.String), "x")]; locals = []; body = []}
 
        (StringMap.add "read"
-     { typ = Int; fname = "read"; formals = 
-     [(String, "a"); (Int, "b"); (Int, "c"); (String, "d")];
+     { typ = A.Simple(A.Int); fname = "read"; formals =
+     [(A.Simple(A.String), "a"); (A.Simple(A.Int), "b"); (A.Simple(A.Int), "c"); (A.Simple(A.String), "d")];
        locals = []; body = [] }
 
        (StringMap.add "write"
-     { typ = Int; fname = "write"; formals = 
-     [(String, "x"); (String, "y")]; 
+     { typ = A.Simple(Int); fname = "write"; formals = 
+     [(A.Simple(String), "x"); (A.Simple(String), "y")]; 
        locals = []; body = [] }
 
        (StringMap.add "string_length"
-     { typ = Int; fname = "string_length"; formals = 
-     [(String, "x")]; 
+     { typ = A.Simple(A.Int); fname = "string_length"; formals = 
+     [(A.Simple(A.String), "x")]; 
        locals = []; body = [] }
 
        (StringMap.add "strcmp"
-     { typ = Int; fname = "strcmp"; formals = 
-     [(String, "x"); (String, "x")]; 
+     { typ = A.Simple(A.Int); fname = "strcmp"; formals = 
+     [(A.Simple(A.String), "x"); (A.Simple(A.String), "x")]; 
        locals = []; body = [] }
 
        (StringMap.add "to_lower"
@@ -135,13 +136,13 @@ let check (globals, functions, structs) =
        locals = []; body = [] }
 
        (StringMap.singleton "print_string"
-     { typ = Void; fname = "print_string"; formals = [(String, "x")];
+     { typ = Void; fname = "print_string"; formals = [(A.Simple(A.String), "x")];
        locals = []; body = [] })))))))))))))
 
    in
 
   (* Accepted types for print_all *)
-  let print_types = [String; Int; Bool; Float; Char] in
+  let print_types = [A.Simple(String); A.Simple(Int); Bool; A.Simple(Float); Char] in
 
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
@@ -153,6 +154,9 @@ let check (globals, functions, structs) =
 
   let struct_decls = List.fold_left (fun m st -> StringMap.add st.sname st m) 
                           StringMap.empty structs
+  in
+  let check_type lvaluet rvaluet err =
+     if (String.compare (string_of_typ lvaluet) (string_of_typ rvaluet)) == 0 then lvaluet else raise err
   in
   
   let struct_decl s = try StringMap.find s struct_decls
@@ -187,22 +191,47 @@ let check (globals, functions, structs) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
+    let array_access_type = function
+      Array(t,_) -> Simple(t)
+      | _ -> raise(Failure("Can only access a[x] from an array a")) 
+    in
+
     (* Return the type of an expression or throw an exception *)
     let rec expr = function
-	  NumLit _ -> Int
-      | FloatLit _ -> Float
+	  NumLit _ -> A.Simple(A.Int)
+      | FloatLit _ -> A.Simple(Float)
       | BoolLit _ -> Bool
       | CharLit _ -> Char
-      | StringLit _ -> String
+      | StringLit _ -> A.Simple(String)
+      | ArrayLit(l) -> let first_type = expr (List.hd l) in
+                         let _ = (match first_type with
+                                    Simple _ -> ()
+                                  | _ -> raise (Failure ("'" ^ string_of_expr (List.hd l) ^ "' is not simple and is in array"))
+                                 ) in
+                         let _ = List.iter (fun x -> if string_of_typ(expr x) == string_of_typ first_type then ()
+                                                     else raise (Failure ("'" ^ string_of_expr x ^ "' doesn't match array's type"))) l in
+                         Array((match first_type with Simple(x) -> x), 1)
+      | ArrayAccess(s, e1) -> let _ = (match (expr e1) with
+                                        Simple(Int) -> Simple(Int) (* || A.Simple(A.String) -> A.Simple(A.String) || A.Simple(A.Float) -> A.Simple(A.Float) *)
+                                       | _ -> raise (Failure ("attempting to access with a non integer type"))) in
+                              array_access_type (type_of_identifier s)
+      | Index (a, i) -> if string_of_typ(expr (List.hd i)) != string_of_typ(Simple(Int))
+                       then raise ( Failure("Array index ('" ^ string_of_expr (List.hd i) ^ "') is not an integer") )
+                       else
+                         let type_of_entity = expr a in
+                         (match type_of_entity with
+                            Array(d, _) -> Simple(d)
+                          | Simple(String) -> Simple(String)
+                          | _ -> raise (Failure ("Entity being indexed ('" ^ string_of_expr a ^"') cannot be array")))
       | Id s -> type_of_identifier s
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
 	       (match op with
-           Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
-         | Add | Sub | Mult | Div when t1 = Float && t2 = Float -> Float
+           Add | Sub | Mult | Div when t1 = A.Simple(A.Int) && t2 = A.Simple(A.Int) -> A.Simple(A.Int)
+         | Add | Sub | Mult | Div when t1 = A.Simple(A.Float) && t2 = A.Simple(A.Float) -> A.Simple(A.Float)
          | Add | Sub | Mult | Div when t1 = Char && t2 = Char -> Char
 	       | Equal | Neq when t1 = t2 -> Bool
-	       | Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
-         | Less | Leq | Greater | Geq when t1 = Float && t2 = Float -> Bool
+	       | Less | Leq | Greater | Geq when t1 = A.Simple(A.Int) && t2 = A.Simple(Int) -> Bool
+         | Less | Leq | Greater | Geq when t1 = A.Simple(A.Float) && t2 = A.Simple(A.Float) -> Bool
 	       | And | Or when t1 = Bool && t2 = Bool -> Bool
          | _ -> raise (Failure ("illegal binary operator " ^
               string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -210,12 +239,12 @@ let check (globals, functions, structs) =
         )
       | Unop(op, e) as ex -> let t = expr e in
 	     (match op with
-	         Neg when t = Int -> Int
-         | Neg when t = Float -> Float
+	         Neg when t = A.Simple(A.Int) -> A.Simple(A.Int)
+         | Neg when t = A.Simple(A.Float) -> A.Simple(A.Float)
 	       | Not when t = Bool -> Bool
          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
 	  		   string_of_typ t ^ " in " ^ string_of_expr ex)))
-      | Pop(e, op) as ex -> let t = expr e in
+     (* | Pop(e, op) as ex -> let t = expr e in
         (match op with
           | Inc | Dec -> (match t with 
                            Int -> Int
@@ -223,12 +252,26 @@ let check (globals, functions, structs) =
                          | _ -> raise (Failure ("illegal postfix operator " ^ string_of_pop op ^
                                               string_of_typ t ^ " in " ^ string_of_expr ex)))
         )
+      *)
       | Noexpr -> Void
       | Assign(var, e) as ex -> let lt = expr var
                                 and rt = expr e in
-        check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
+        check_type lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
 				     " = " ^ string_of_typ rt ^ " in " ^ 
 				     string_of_expr ex))
+      | ArrayAssign(v, i, e) as ex -> let type_of_left_side =
+                                      if string_of_typ(expr (List.hd i)) != string_of_typ(Simple(Int))
+                                      then raise ( Failure("Array index ('" ^ string_of_expr (List.hd i) ^ "') is not an integer") )
+                                      else
+                                        let type_of_entity = type_of_identifier v in
+                                        (match type_of_entity with
+                                           Array(d, _) -> Simple(d)
+                                         | _ -> raise (Failure ("Entity being indexed ('" ^ v ^"') cannot be array"))) in
+                                      let type_of_right_side = expr e in
+                                      check_type type_of_left_side type_of_right_side
+                                      (Failure ("illegal assnt " ^ string_of_typ type_of_left_side ^
+                                                " = " ^ string_of_typ type_of_right_side ^ " in " ^
+                                                string_of_expr ex))
       | Call(fname, actuals) as call -> let fd = function_decl fname in
          if List.length actuals != List.length fd.formals then
            raise (Failure ("expecting " ^ string_of_int

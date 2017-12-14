@@ -7,14 +7,16 @@ type pop =
   | Dec 
   | Inc
 
+type dtyp = Int | String | Float
+
 type uop = Neg | Not
 
-type typ = Int
-    | Float
+type typ = Simple of dtyp
+    
     | Bool
     | Char
     | Void
-    | String
+    | Array of dtyp * int
     | Struct of string
 
 type bind = typ * string
@@ -26,12 +28,16 @@ type expr =
   | FloatLit of float
   | BoolLit of bool
   | StringLit of string
+  | ArrayLit of expr list
+  | Index of expr * expr list
   | CharLit of char
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Pop of expr * pop 
   | Assign of expr * expr
+  | ArrayAssign of string * expr list * expr
+  | ArrayAccess of string * expr 
   | Call of string * expr list
   | Noexpr
 
@@ -84,12 +90,21 @@ let string_of_pop = function
     Inc -> "++"
   | Dec -> "--"
 
+let convert_array l conversion joiner =
+    let glob_item original data = original ^ (conversion data) ^ joiner in
+    let full = (List.fold_left glob_item "" l) in
+    "[" ^ String.sub full 0 ((String.length full) - 2) ^ "]"
+
 let rec string_of_expr = function
     NumLit(l) -> string_of_int l
   | FloatLit(f) -> string_of_float f
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | StringLit(s) -> s
+  | ArrayLit(l) -> convert_array l string_of_expr ", "
+  | Index(e, l) -> string_of_expr e ^
+                   "{|" ^ string_of_expr (List.hd l) ^ "|}"
+  | ArrayAssign(v, l, e) -> v ^ "[" ^ string_of_expr (List.hd l) ^ "]" ^ " = " ^ string_of_expr e
   | CharLit(s) -> Char.escaped s
   | Id(s) -> s
   | Binop(e1, o, e2) ->
@@ -100,6 +115,7 @@ let rec string_of_expr = function
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
+  | ArrayAccess(s,e2) -> (s) ^ "[" ^ (string_of_expr e2) ^ "]"
 
 let rec string_of_stmt = function
     Block(stmts) ->
@@ -114,13 +130,21 @@ let rec string_of_stmt = function
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
 
-let string_of_typ = function
+let string_of_d_typ = function
   Int -> "int"
-  | Float -> "float"
-  | Bool -> "bool"
+| String -> "string"
+| Float -> "float"
+
+let rec repeat c = function
+    0 -> ""
+  | n -> c ^ (repeat c (n - 1))
+
+let string_of_typ = function
+    Bool -> "bool"
   | Void -> "void"
   | Char -> "char"
-  | String -> "string"
+  | Simple(d) -> string_of_d_typ d
+  | Array(d,n) -> string_of_d_typ d ^ repeat "[]" n
   | Struct(id) -> "struct" ^ id
 
 let string_of_vdecl = function

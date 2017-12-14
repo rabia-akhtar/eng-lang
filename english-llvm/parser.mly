@@ -9,12 +9,12 @@ let trd (_,_,c) = c;;
 
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA
+%token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT DECREMENT INCREMENT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 
 %token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID
-%token INT CHAR FLOAT BOOL VOID STRING ARRAY STRUCT TRUE FALSE
+%token INT CHAR FLOAT BOOL VOID STRING OF STRUCT TRUE FALSE LINDEX RINDEX
 %token <int> NUM_LIT
 %token <float> FLOAT_LIT
 %token <string> STRING_LIT
@@ -64,14 +64,28 @@ formal_list:
     typ ID                   { [($1,$2)] }
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
+dtyp:
+  INT { Int }
+| STRING {String}
+| FLOAT {Float}
+
+atyp:
+  dtyp dim_list { Array($1, $2) }
+
 typ:
-    INT { Int }
-  | FLOAT { Float }
+    dtyp { Simple($1)}
+  | atyp { $1 }
   | BOOL { Bool }
-  | VOID { Void }
-  | STRING { String }
+  | VOID { Void}
   | CHAR {Char}
   | STRUCT ID { Struct ($2) }
+
+dim_list:
+  LSQUARE RSQUARE { 1 }
+| LSQUARE RSQUARE dim_list { 1 + $3 }
+
+index:
+  LINDEX expr RINDEX { $2 }
 
 vdecl_list:
     /* nothing */    { [] }
@@ -111,11 +125,19 @@ expr_opt:
 id:
   ID               { Id($1) }
 
+val_list:
+    expr                { [ $1 ] }
+  | expr COMMA val_list { [ $1 ] @ $3 }
+
+simple_arr_literal:
+    LSQUARE val_list RSQUARE { $2 }
+
 expr:
     NUM_LIT          { NumLit($1) }
   | FLOAT_LIT        { FloatLit($1) }
   | STRING_LIT       { StringLit($1) }
   | CHAR_LITERAL     { CharLit($1)}
+  | simple_arr_literal { ArrayLit($1)}
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }
@@ -137,6 +159,9 @@ expr:
   | NOT expr         { Unop(Not, $2) }
   | expr ASSIGN expr   { Assign($1,        $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
+  | ID LSQUARE expr RSQUARE {ArrayAccess($1, $3)}
+  | ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssign($1, [$3], $6) }
+  | expr index { Index($1, [$2]) }
   | LPAREN expr RPAREN { $2 }
 
 
@@ -148,6 +173,3 @@ actuals_list:
     expr                    { [$1] }
   | actuals_list COMMA expr { $3 :: $1 }
 
-arr_lit:
-    expr {[$1]} 
-  | arr_lit COMMA expr {$3 :: $1}
