@@ -125,11 +125,14 @@ let check (globals, functions, structs) =
       | _ -> raise (Failure ("Illegal global initialization"))
   in
 
+  let check_type lvaluet rvaluet err =
+     if (String.compare (string_of_typ lvaluet) (string_of_typ rvaluet)) == 0 then lvaluet else raise err
+  in
+
   let checkGlobalInit = function
     VarDecl(t,n,e) -> if e != Noexpr then
       let typ = globalInitTyps e in
-        if t != typ 
-          then raise (Failure ("Global initialization type does not match " ^ n ^ " " ^ string_of_expr e)) 
+        ignore (check_type t typ(Failure ("Global initialization type does not match " ^ n ^ " " ^ string_of_expr e))) 
   in
 
   (* check assignment types *)
