@@ -266,7 +266,7 @@ let check (globals, functions, structs) =
   
  (* let struct_decl s = try StringMap.find s struct_decls
       with Not_found -> raise (Failure ("unrecognized struct" ^ s)) *)
-  
+ 
 
   let _ = function_decl "main" in (* Ensure "main" is defined *)
 
@@ -425,9 +425,8 @@ let check (globals, functions, structs) =
     let check_var_init = function 
       VarDecl(t,_,e) as ex -> if e != Noexpr then
         let v = expr e in
-          if (t != v) then
-            raise (Failure ("illegal initialization of" ^ string_of_typ t ^
-             " = " ^ string_of_typ v ^ " in " ^ string_of_vdecl ex)) in
+          ignore (check_type t v(Failure ("illegal initialization of" ^ string_of_typ t ^
+             " = " ^ string_of_typ v ^ " in " ^ string_of_vdecl ex))) in
 
     stmt (Block func.body);
     List.iter check_var_init func.locals
