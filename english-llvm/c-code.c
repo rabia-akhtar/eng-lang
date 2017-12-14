@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 /*
  * Font information: one byte per row, 8 rows per character
@@ -68,6 +69,55 @@ void printbig(int c)
 char char_lower(char c)
 {
   return tolower(c);
+}
+
+char strget(char* c, int x)
+{
+  return *(c + x);
+}
+
+int is_stop_word(char * c){
+  char word[100];
+  char whitespace[100];
+
+  FILE *file = fopen("stopwords.txt", "r");
+
+  while(!feof(file)) {
+      fscanf(file,"%[^ \n\t\r]s",word); 
+      if(strcmp(c, word) == 0){
+        fclose(file);
+        return 1;
+      }
+      fscanf(file,"%[ \n\t\r]s",whitespace); 
+  }
+
+  fclose(file);
+  return 0;
+
+}
+
+int word_count(char * str){
+  int count = 0;
+  int curr = 0;
+  while(*str != '\0'){
+    if (*str == ' ') {
+      if (curr == 1){
+        count = count + 1;
+        curr = 0;
+      }
+    }
+      
+      if(*str != ' '){
+        curr = 1;
+      }
+     str++;
+  }
+
+  if (curr == 1){
+    count = count + 1;
+  }
+
+  return count;
 }
 
 #ifdef BUILD_TEST

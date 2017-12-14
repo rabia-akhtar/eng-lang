@@ -1,10 +1,24 @@
 struct Book {
 	int Id;
 	string Title;
-}
+};
+
+struct Doc {
+	string File;
+	int Word_count;
+};
 
 int main()
 {
-  print_string("ok");
+  struct Book b1;
+  struct Doc doc;
+  b1.Id = 2;
+  b1.Title = "hello world";
+  doc.File = "this is an essay";
+  doc.Word_count = 20;
+  print(b1.Id);
+  print_string(b1.Title);
+  print_string(doc.File);
+  print(doc.Word_count);
   return 0;
 }

@@ -11,7 +11,7 @@ let trd (_,_,c) = c;;
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT DECREMENT INCREMENT
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR DOT
 
 %token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID
 %token INT CHAR FLOAT BOOL VOID STRING OF STRUCT TRUE FALSE LINDEX RINDEX
@@ -28,10 +28,11 @@ let trd (_,_,c) = c;;
 
 %left OR
 %left AND
-%left EQ NEQ
+%left EQ NEQ 
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
+%left DOT 
 %right NOT NEG
 
 %start program
@@ -95,8 +96,9 @@ vdecl:
     typ ID SEMI             { VarDecl($1, $2, Noexpr) }
   | typ ID ASSIGN expr SEMI { VarDecl($1, $2, $4) }
 
+
 sdecl:
-    STRUCT ID LBRACE vdecl_list RBRACE
+    STRUCT ID LBRACE vdecl_list RBRACE SEMI
       { 
         { sname = $2;
           sformals = $4;
@@ -117,6 +119,7 @@ stmt:
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
      { For($3, $5, $7, $9) }
   | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+
 
 expr_opt:
     /* nothing */ { Noexpr }
@@ -158,6 +161,7 @@ expr:
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
   | expr ASSIGN expr   { Assign($1,        $3) }
+  | expr DOT ID   { Dot($1,        $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | ID LSQUARE expr RSQUARE {ArrayAccess($1, $3)}
   | ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssign($1, [$3], $6) }

@@ -27,12 +27,28 @@ let translate (globals, functions, structs) =
   and i1_t   = L.i1_type   context
   and f_t    = L.double_type context
   and void_t = L.void_type context
-  and struct_t id = L.named_struct_type context id in
+in 
+
+  let struct_type_table:(string, L.lltype) Hashtbl.t = Hashtbl.create 10
+  in
+
+  let make_struct_type sdecl =
+    let struct_t = L.named_struct_type context sdecl.A.sname in
+    Hashtbl.add struct_type_table sdecl.A.sname struct_t in 
+    let _  = List.map make_struct_type structs 
+  in 
+
+
+  let lookup_struct_type sname = try Hashtbl.find struct_type_table sname
+    with Not_found -> raise(Failure("Struct name not found"))
+in 
 
   let rec int_range = function
       0 -> [ ]
     | 1 -> [ 0 ]
     | n -> int_range (n - 1) @ [ n - 1 ] in
+
+
 
   let rec ltype_of_typ = function
       A.Simple(A.Int) -> i32_t
@@ -42,8 +58,42 @@ let translate (globals, functions, structs) =
     | A.Simple(A.String) -> p_t
     | A.Array(d, _) ->  L.struct_type context [| i32_t ; L.pointer_type (ltype_of_typ (A.Simple(d))) |]
     | A.Char -> i8_t
-    | A.Struct id -> struct_t id 
+    | A.Struct(sname) -> lookup_struct_type sname
     in
+
+
+
+let make_struct_type sdecl =
+  let struct_t = L.named_struct_type context sdecl.A.sname in
+  Hashtbl.add struct_type_table sdecl.A.sname struct_t in 
+  let _  = List.map make_struct_type structs 
+in 
+
+
+
+(* Define structs and fill hashtable *)
+let make_struct_body sdecl =
+  let struct_typ = try Hashtbl.find struct_type_table sdecl.A.sname
+    with Not_found -> raise(Failure("struct type not defined")) in
+  let sformals_types = List.map (fun (A.VarDecl(t, _, _)) -> t) sdecl.A.sformals in
+  let sformals_lltypes = Array.of_list (List.map ltype_of_typ sformals_types) in
+  L.struct_set_body struct_typ sformals_lltypes true
+in  ignore(List.map make_struct_body structs);
+
+let struct_field_indices =
+  let handles m one_struct = 
+    let struct_field_names = List.map (fun (A.VarDecl(_, n, _)) -> n) one_struct.A.sformals in
+    let add_one n = n + 1 in
+    let add_fieldindex (m, i) field_name =
+      (StringMap.add field_name (add_one i) m, add_one i) in
+    let struct_field_map = 
+      List.fold_left add_fieldindex (StringMap.empty, -1) struct_field_names
+    in
+    StringMap.add one_struct.A.sname (fst struct_field_map) m  
+  in
+  List.fold_left handles StringMap.empty structs  
+  in
+
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -69,17 +119,46 @@ let translate (globals, functions, structs) =
   let read_t = L.function_type i32_t [| p_t; i32_t; i32_t; p_t |] in 
   let read_func = L.declare_function "fread" read_t the_module in
 
-  (* Declare the built-in strlen() function as string_length() *)
-  let string_length_t = L.function_type i32_t [| p_t |] in 
-  let string_length_func = L.declare_function "strlen" string_length_t the_module in
+  (* Declare the built-in strlen() function  *)
+  let strlen_t = L.function_type i32_t [| p_t |] in 
+  let strlen_func = L.declare_function "strlen" strlen_t the_module in
 
-  (* Declare the built-in strcmp() function as string_length() *)
+  (* Declare the built-in strcmp() function *)
   let strcmp_t = L.function_type i32_t [| p_t; p_t|] in 
   let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
+
+  (* Declare the built-in strcat() function *)
+  let strcat_t = L.function_type p_t [| p_t; p_t|] in 
+  let strcat_func = L.declare_function "strcat" strcat_t the_module in
+
+  (* Declare the built-in strcpy() function *)
+  let strcpy_t = L.function_type p_t [| p_t; p_t|] in 
+  let strcpy_func = L.declare_function "strcpy" strcpy_t the_module in
+
+  (* Declare the built-in strget() function *)
+  let strget_t = L.function_type i8_t [| p_t; i32_t|] in 
+  let strget_func = L.declare_function "strget" strget_t the_module in
 
   (* Declare c code as string_lower() *)
   let to_lower_t = L.function_type i8_t [| i8_t |] in 
   let to_lower_func = L.declare_function "char_lower" to_lower_t the_module in
+
+  (* Declare c code as is_stop_word() *)
+  let is_stop_word_t = L.function_type i32_t [| p_t |] in 
+  let is_stop_word_func = L.declare_function "is_stop_word" is_stop_word_t the_module in
+
+  (* Declare c code as is_stop_word() *)
+  
+  let word_count_t = L.function_type i32_t [| p_t |] in 
+  let word_count_func = L.declare_function "word_count" word_count_t the_module in
+
+  (* Declare heap storage function *)
+  let calloc_t = L.function_type p_t [| i32_t ; i32_t|] in 
+  let calloc_func = L.declare_function "calloc" calloc_t the_module in
+
+  (* Declare free from heap *)
+  let free_t = L.function_type p_t [| p_t |] in 
+  let free_func = L.declare_function "free" free_t the_module in
 
   let int_format_str builder = L.build_global_stringptr "%d\n" "fmt" builder in
   let float_format_str builder = L.build_global_stringptr "%f\n" "fmt" builder in
@@ -144,6 +223,7 @@ let translate (globals, functions, structs) =
       | A.Char -> L.const_int i8_t 0
       | A.Simple(A.String) -> get_init_val(A.StringLit "")
       | A.Array(d, _) -> L.const_null (L.struct_type context [| i32_t ; L.pointer_type (ltype_of_typ (A.Simple(d))) |])
+      | A.Struct(sname) -> L.const_named_struct (lookup_struct_type sname) [||]
       | _ -> raise (Failure ("notzzzz found"))
   in
 
@@ -152,6 +232,44 @@ let translate (globals, functions, structs) =
          then L.build_gep(lookup g_map l_map s) [| i1; i2 |] s builder
          else L.build_load (L.build_gep(lookup g_map l_map s) [| i1; i2|] s builder) s builder
     in 
+
+
+ (* Declare each global variable; remember its value in a map *)
+  let global_vars =
+    let global_var m (A.VarDecl(_, n, e)) =
+      let init = get_init_val e in
+      StringMap.add n (L.define_global n init the_module) m in
+    List.fold_left global_var StringMap.empty globals in
+  
+  (* Fill in the body of the given function *)
+  let build_function_body fdecl =
+    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
+    let builder = L.builder_at_end context (L.entry_block the_function) in
+    
+  (* Return addr of lhs expr *)
+  let addr_of_expr expr builder g_map l_map = match expr with
+    A.Id(id) -> (lookup g_map l_map id) 
+  | A.Dot (e1, field) ->
+       (match e1 with
+      A.Id s -> let etype = fst( 
+        let fdecl_locals = List.map (fun (A.VarDecl(t, n, _)) -> (t, n)) fdecl.A.locals in
+        try List.find (fun n -> snd(n) = s) fdecl_locals
+        with Not_found -> raise (Failure("Unable to find" ^ s )))
+        in
+        (try match etype with
+          A.Struct t->
+            let index_number_list = StringMap.find t struct_field_indices in
+            let index_number = StringMap.find field index_number_list in
+            let struct_llvalue = lookup g_map l_map s in
+            let access_llvalue = L.build_struct_gep struct_llvalue index_number "tmp" builder in
+            access_llvalue
+        | _ -> raise (Failure("not found"))
+       with Not_found -> raise (Failure("not found" ^ s)))
+       | _ -> raise (Failure("lhs not found")))
+       | _ -> raise (Failure("addr not found"))
+
+  in
+
 
   (* Construct code for an expression; return its value *)
   let rec expr builder g_map l_map = function
@@ -252,11 +370,29 @@ let translate (globals, functions, structs) =
                                   let extract_array = L.build_extractvalue v' 1 "extract_ptr" builder in
                                   let extract_value = L.build_gep extract_array [| i' |] "extract_value" builder in
                                   ignore (L.build_store e' extract_value builder); e'  
-      | A.Assign (e1, e2) -> let e2' = expr builder g_map l_map e2 in
+     (* | A.Assign (e1, e2) -> let e2' = expr builder g_map l_map e2 in
       (match e1 with
         A.Id s -> ignore (L.build_store e2' (lookup g_map l_map s) builder); e2'
         | _ -> raise (Failure ("not found"))
-      )
+      ) *)
+      
+     | A.Assign (e1, e2) -> let l_val = (addr_of_expr e1 builder g_map l_map) in
+      let e2' = expr builder g_map l_map e2 in
+       ignore (L.build_store e2' l_val builder); e2' 
+
+      | A.Dot (e, field) -> let llvalue = (addr_of_expr e builder g_map l_map) in 
+      let built_e = expr builder g_map l_map e in
+      let built_e_lltype = L.type_of built_e in
+      let built_e_opt = L.struct_name built_e_lltype in
+      let built_e_name = (match built_e_opt with 
+                                  | None -> ""
+                                  | Some(s) -> s)                             
+      in
+      let indices = StringMap.find built_e_name struct_field_indices in
+      let index = StringMap.find field indices in
+      let access_llvalue = L.build_struct_gep llvalue index "tmp" builder in
+                           L.build_load access_llvalue "tmp" builder      
+
       | A.Call ("print", [e]) 
 
       | A.Call ("printb", [e]) -> L.build_call printf_func [| int_format_str builder; (expr builder g_map l_map e) |]
@@ -270,12 +406,26 @@ let translate (globals, functions, structs) =
             L.build_call read_func (Array.of_list x) "fread" builder
       | A.Call("write", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call write_func (Array.of_list x) "fputs" builder
-      | A.Call("string_length", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
-            L.build_call string_length_func (Array.of_list x) "strlen" builder
+      | A.Call("strlen", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strlen_func (Array.of_list x) "strlen" builder
       | A.Call("strcmp", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call strcmp_func (Array.of_list x) "strcmp" builder
+      | A.Call("strcat", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strcat_func (Array.of_list x) "strcat" builder
+      | A.Call("strcpy", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strcpy_func (Array.of_list x) "strcpy" builder
+      | A.Call("strget", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call strget_func (Array.of_list x) "strget" builder
       | A.Call("to_lower", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
             L.build_call to_lower_func (Array.of_list x) "char_lower" builder
+      | A.Call("calloc", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call calloc_func (Array.of_list x) "calloc" builder
+      | A.Call("free", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call free_func (Array.of_list x) "free" builder
+      | A.Call("is_stop_word", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+            L.build_call is_stop_word_func (Array.of_list x) "is_stop_word" builder
+      | A.Call("word_count", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+          L.build_call word_count_func (Array.of_list x) "word_count" builder
       | A.Call ("print_float", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
@@ -294,26 +444,14 @@ let translate (globals, functions, structs) =
          L.build_call fdef (Array.of_list actuals) result builder
     in
 
- (* Declare each global variable; remember its value in a map *)
-  let global_vars =
-    let global_var m (A.VarDecl(_, n, e)) =
-      let init = get_init_val e in
-      StringMap.add n (L.define_global n init the_module) m in
-    List.fold_left global_var StringMap.empty globals in
-  
-  (* Fill in the body of the given function *)
-  let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
-    let builder = L.builder_at_end context (L.entry_block the_function) in
-    
-    (* Construct the function's "locals": formal arguments and locally
+(* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
     let local_vars =
       let add_formal m (t, n) p = L.set_value_name n p;
-	    let local = L.build_alloca (ltype_of_typ t) n builder in
-	    ignore (L.build_store p local builder);
-	    StringMap.add n local m in
+      let local = L.build_alloca (ltype_of_typ t) n builder in
+      ignore (L.build_store p local builder);
+      StringMap.add n local m in
 
     let add_local m (A.VarDecl(t, n, e)) =
       let e' = match e with 
@@ -328,21 +466,7 @@ let translate (globals, functions, structs) =
     let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
           (Array.to_list (L.params the_function)) in
       List.fold_left add_local formals fdecl.A.locals in
-
-    (* Define structs *)
-  let struct_decls =
-    let struct_decl m sdecl =
-      let sname = sdecl.A.sname
-      and sformal_types =
-  Array.of_list (List.map (fun (A.VarDecl(t,_,_)) -> ltype_of_typ t) sdecl.A.sformals)
-      in let stype = L.struct_type context sformal_types in
-      StringMap.add sname (stype, sdecl.A.sformals) m in
-    List.fold_left struct_decl StringMap.empty structs in
-    let struct_lookup n = try StringMap.find n struct_decls
-  with Not_found -> raise (Failure ("struct " ^ n ^ " unrecognized")) 
-in
-
-
+      
     (* Invoke "f builder" if the current block doesn't already
        have a terminal (e.g., a branch). *)
     let add_terminal builder f =

@@ -1,6 +1,6 @@
 int main(){
    file_ptr fp;
-   fp = open("test-write.txt", "wb");
+   fp = open("tests/test-write.txt", "wb");
    write("Testing Write", fp);
    close(fp);
    print_string("done");

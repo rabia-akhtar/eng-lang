@@ -1,0 +1,8 @@
+int main()
+{
+  string essay = "This is a test to see how many words are in this essay. There are two sentences.";
+  int count = word_count(essay);
+  print_string(essay);
+  print(count);
+  
+}

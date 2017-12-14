@@ -4,6 +4,7 @@ open Ast
 module A = Ast
 
 module StringMap = Map.Make(String)
+module StringSet = Set.Make(String)
 
 (* Semantic checking of a program. Returns void if successful,
    throws an exception if something is wrong.
@@ -19,6 +20,31 @@ let check (globals, functions, structs) =
       | _ :: t -> helper t
       | [] -> ()
     in helper (List.sort compare list)
+  in
+
+  (* Check struct name and recursive definition *)
+  let find_sdecl_from_sname struct_t_name =
+    try List.find (fun t-> t.sname= struct_t_name) structs 
+      with Not_found -> raise (Failure("Struct " ^ struct_t_name ^ "not found")) 
+  in
+  let rec check_rec_struct_h sdecl structs_known_set =
+    let check_for_repetition struct_t_name =
+      if StringSet.mem struct_t_name structs_known_set 
+      then raise (Failure ("recursive struct definition"))
+      else check_rec_struct_h (find_sdecl_from_sname struct_t_name)  
+      (StringSet.add struct_t_name structs_known_set)
+    in
+    let struct_field_check = function
+      (Struct s, _) -> check_for_repetition s
+      | _ -> () 
+    in
+    let sformals_list = List.map (fun (VarDecl(t, n, _)) -> (t, n)) sdecl.sformals in
+    List.iter (struct_field_check) sformals_list
+  in
+  let check_recursive_struct sdecl =
+     check_rec_struct_h sdecl StringSet.empty    
+  in
+  let _ = List.map check_recursive_struct structs
   in
 
   (* Raise an exception if a given binding is to a void type *)
@@ -38,6 +64,21 @@ let check (globals, functions, structs) =
      if lvaluet == rvaluet then lvaluet else raise err
   in
 
+  let resolve_struct_access sname field = 
+    let  s = try List.find (fun t -> t.sname = sname) structs 
+      with Not_found -> raise (Failure("Struct " ^ sname ^ " not found")) in
+    let sformals = List.map (fun (VarDecl(t, n, _)) -> (t, n)) s.sformals in
+    try fst( List.find (fun s -> snd(s) = field) sformals) with
+  Not_found -> raise (Failure("Field " ^ field ^ " not found in Struct" ^ sname))
+  in
+
+  let check_access lhs rhs =
+     match lhs with
+       Struct s -> resolve_struct_access s rhs
+       | _ -> raise (Failure(string_of_typ lhs^ " is not a struct"))
+  
+  in
+
   (* Check function declrations *)
   let check_func_decl func_name =
     if List.mem func_name (List.map (fun fd -> fd.fname) functions)
@@ -53,10 +94,17 @@ let check (globals, functions, structs) =
   check_func_decl "close";
   check_func_decl "read";
   check_func_decl "write";
-  check_func_decl "string_length";
-  check_func_decl "string_compare";
+  check_func_decl "strlen";
+  check_func_decl "strcmp";
+  check_func_decl "strcat";
+  check_func_decl "strcpy";
+  check_func_decl "strget";
   check_func_decl "to_lower";
+  check_func_decl "calloc";
+  check_func_decl "free";
   check_func_decl "print_char";
+  check_func_decl "is_stop_word";
+  check_func_decl "word_count";
   check_func_decl "print_string";
 
    
@@ -66,6 +114,26 @@ let check (globals, functions, structs) =
    
   report_duplicate (fun n -> "duplicate global " ^ n) 
     (List.map (fun (VarDecl(_,n,_)) -> n)  globals);
+
+  (* allowed initiation types *)
+  let globalInitTyps = function
+      NumLit _ -> A.Simple(A.Int)
+      | FloatLit _ -> A.Simple(A.Float)
+      | BoolLit _ -> Bool
+      | StringLit _ -> A.Simple(A.String)
+      | CharLit _ -> Char
+      | _ -> raise (Failure ("Illegal global initialization"))
+  in
+
+  let checkGlobalInit = function
+    VarDecl(t,n,e) -> if e != Noexpr then
+      let typ = globalInitTyps e in
+        if t != typ 
+          then raise (Failure ("Global initialization type does not match " ^ n ^ " " ^ string_of_expr e)) 
+  in
+
+  (* check assignment types *)
+  List.iter checkGlobalInit globals; 
 
   (**** Checking Functions ****)
 
@@ -116,9 +184,11 @@ let check (globals, functions, structs) =
      [(A.Simple(String), "x"); (A.Simple(String), "y")]; 
        locals = []; body = [] }
 
-       (StringMap.add "string_length"
-     { typ = A.Simple(A.Int); fname = "string_length"; formals = 
+
+       (StringMap.add "strlen"
+     { typ = A.Simple(A.Int); fname = "strlen"; formals = 
      [(A.Simple(A.String), "x")]; 
+
        locals = []; body = [] }
 
        (StringMap.add "strcmp"
@@ -126,18 +196,53 @@ let check (globals, functions, structs) =
      [(A.Simple(A.String), "x"); (A.Simple(A.String), "x")]; 
        locals = []; body = [] }
 
+        (StringMap.add "strcat"
+     { typ = A.Simple(A.String); fname = "strcat"; formals = 
+     [(A.Simple(A.String), "x"); (A.Simple(A.String), "x")]; 
+       locals = []; body = [] }
+
+        (StringMap.add "strcpy"
+     { typ = A.Simple(A.String); fname = "strcpy"; formals = 
+     [(A.Simple(A.String), "x"); (A.Simple(A.String), "x")]; 
+       locals = []; body = [] }
+
+        (StringMap.add "strget"
+     { typ = Char; fname = "strcat"; formals = 
+     [(A.Simple(A.String), "x"); (A.Simple(A.Int), "y")]; 
+       locals = []; body = [] }
+
        (StringMap.add "to_lower"
      { typ = Char; fname = "to_lower"; formals = 
      [(Char, "x")]; 
+       locals = []; body = [] }
+
+       (StringMap.add "calloc"
+     { typ = A.Simple(A.String); fname = "calloc"; formals = 
+     [(A.Simple(A.Int), "x"); (A.Simple(A.Int), "x")]; 
+       locals = []; body = [] }
+
+        (StringMap.add "free"
+     { typ = A.Simple(A.String); fname = "free"; formals = 
+     [(A.Simple(A.String), "x") ]; 
        locals = []; body = [] }
 
        (StringMap.add"print_char"
      { typ = Void; fname = "print_char"; formals = [(Char, "x")];
        locals = []; body = [] }
 
+         (StringMap.add"is_stop_word"
+     { typ = A.Simple(A.Int); fname = "is_stop_word"; formals = [(A.Simple(A.String), "x")];
+       locals = []; body = [] }
+
+         (StringMap.add"word_count"
+     { typ = A.Simple(A.Int); fname = "word_count"; formals = [(A.Simple(A.String), "x")];
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
+
      { typ = Void; fname = "print_string"; formals = [(A.Simple(A.String), "x")];
-       locals = []; body = [] })))))))))))))
+       locals = []; body = [] }))))))))))))))))))))
+
 
    in
 
@@ -152,16 +257,16 @@ let check (globals, functions, structs) =
        with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
 
-  let struct_decls = List.fold_left (fun m st -> StringMap.add st.sname st m) 
-                          StringMap.empty structs
-  in
+  (* let struct_decls = List.fold_left (fun m st -> StringMap.add st.sname st m) 
+                          StringMap.empty structs *)
+  
   let check_type lvaluet rvaluet err =
      if (String.compare (string_of_typ lvaluet) (string_of_typ rvaluet)) == 0 then lvaluet else raise err
   in
   
-  let struct_decl s = try StringMap.find s struct_decls
-      with Not_found -> raise (Failure ("unrecognized struct" ^ s))
-  in
+ (* let struct_decl s = try StringMap.find s struct_decls
+      with Not_found -> raise (Failure ("unrecognized struct" ^ s)) *)
+  
 
   let _ = function_decl "main" in (* Ensure "main" is defined *)
 
@@ -237,6 +342,7 @@ let check (globals, functions, structs) =
               string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
               string_of_typ t2 ^ " in " ^ string_of_expr e))
         )
+      | Dot(e, field) -> check_access (expr e) field
       | Unop(op, e) as ex -> let t = expr e in
 	     (match op with
 	         Neg when t = A.Simple(A.Int) -> A.Simple(A.Int)
@@ -316,7 +422,14 @@ let check (globals, functions, structs) =
       | While(p, s) -> check_bool_expr p; stmt s
     in
 
-    stmt (Block func.body)
-   
+    let check_var_init = function 
+      VarDecl(t,_,e) as ex -> if e != Noexpr then
+        let v = expr e in
+          if (t != v) then
+            raise (Failure ("illegal initialization of" ^ string_of_typ t ^
+             " = " ^ string_of_typ v ^ " in " ^ string_of_vdecl ex)) in
+
+    stmt (Block func.body);
+    List.iter check_var_init func.locals
   in
   List.iter check_function functions

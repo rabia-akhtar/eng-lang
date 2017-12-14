@@ -21,7 +21,6 @@ type typ = Simple of dtyp
 
 type bind = typ * string
 
-
 type expr =
     (* Literal of int *)
     NumLit of int
@@ -39,7 +38,15 @@ type expr =
   | ArrayAssign of string * expr list * expr
   | ArrayAccess of string * expr 
   | Call of string * expr list
+  | Dot of expr * string
   | Noexpr
+
+type var_decl = VarDecl of typ * string * expr
+
+type struct_decl = {
+    sname: string;
+    sformals: var_decl list;
+ }
 
 type stmt =
     Block of stmt list
@@ -49,8 +56,6 @@ type stmt =
   | For of expr * expr * expr * stmt
   | While of expr * stmt
 
-type var_decl = VarDecl of typ * string * expr
-
 type func_decl = {
     typ : typ;
     fname : string;
@@ -58,11 +63,6 @@ type func_decl = {
     locals : var_decl list;
     body : stmt list;
   }
-
-type struct_decl = {
-    sname: string;
-    sformals: var_decl list;
- }
 
 type program = var_decl list * func_decl list * struct_decl list 
 
@@ -112,6 +112,7 @@ let rec string_of_expr = function
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
   | Pop(v, p) -> string_of_expr v ^ string_of_pop p
   | Assign(v, e) ->  string_of_expr v ^ " = " ^ string_of_expr e
+  | Dot(e, s) ->  string_of_expr e ^ "." ^ s
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
