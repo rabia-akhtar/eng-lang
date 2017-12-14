@@ -244,15 +244,14 @@ let check (globals, functions, structs) =
 	       | Not when t = Bool -> Bool
          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
 	  		   string_of_typ t ^ " in " ^ string_of_expr ex)))
-     (* | Pop(e, op) as ex -> let t = expr e in
+     | Pop(e, op) as ex -> let t = expr e in
         (match op with
           | Inc | Dec -> (match t with 
-                           Int -> Int
-                         | Float -> Float
+                           A.Simple(A.Int) -> A.Simple(A.Int)
+                         | A.Simple(A.Float) -> A.Simple(A.Float)
                          | _ -> raise (Failure ("illegal postfix operator " ^ string_of_pop op ^
                                               string_of_typ t ^ " in " ^ string_of_expr ex)))
         )
-      *)
       | Noexpr -> Void
       | Assign(var, e) as ex -> let lt = expr var
                                 and rt = expr e in
@@ -287,7 +286,7 @@ let check (globals, functions, structs) =
                   | _ ->
                   List.iter2 (fun (ftyp, _) e ->
                     let etyp = expr e in
-                    ignore (check_assign ftyp etyp (Failure ("illegal actual argument found " ^ string_of_typ etyp ^ " expected " ^ string_of_typ ftyp ^ " in " ^ string_of_expr e)))
+                    ignore (check_type ftyp etyp (Failure ("illegal actual argument found " ^ string_of_typ etyp ^ " expected " ^ string_of_typ ftyp ^ " in " ^ string_of_expr e)))
                   ) fd.formals actuals
               ) in
             fd.typ
