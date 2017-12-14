@@ -29,28 +29,25 @@ let translate (globals, functions, structs) =
   and void_t = L.void_type context
 in 
 
-  let struct_type_table:(string, L.lltype) Hashtbl.t = Hashtbl.create 10
-  in
-
-  let make_struct_type sdecl =
-    let struct_t = L.named_struct_type context sdecl.A.sname in
-    Hashtbl.add struct_type_table sdecl.A.sname struct_t in 
-    let _  = List.map make_struct_type structs 
-  in 
-
-
-  let lookup_struct_type sname = try Hashtbl.find struct_type_table sname
-    with Not_found -> raise(Failure("Struct name not found"))
-in 
-
   let rec int_range = function
       0 -> [ ]
     | 1 -> [ 0 ]
     | n -> int_range (n - 1) @ [ n - 1 ] in
 
 
+let struct_type_table:(string, L.lltype) Hashtbl.t = Hashtbl.create 10
+in 
 
-  let rec ltype_of_typ = function
+let make_struct_type sdecl =
+  let struct_t = L.named_struct_type context sdecl.A.sname in
+  Hashtbl.add struct_type_table sdecl.A.sname struct_t in 
+  let _  = List.map make_struct_type structs 
+in 
+
+let lookup_struct_type sname = try Hashtbl.find struct_type_table sname
+  with Not_found -> raise(Failure("Struct name not found"))
+in 
+let rec ltype_of_typ = function
       A.Simple(A.Int) -> i32_t
     | A.Simple(A.Float) -> f_t
     | A.Bool -> i1_t
@@ -60,16 +57,6 @@ in
     | A.Char -> i8_t
     | A.Struct(sname) -> lookup_struct_type sname
     in
-
-
-
-let make_struct_type sdecl =
-  let struct_t = L.named_struct_type context sdecl.A.sname in
-  Hashtbl.add struct_type_table sdecl.A.sname struct_t in 
-  let _  = List.map make_struct_type structs 
-in 
-
-
 
 (* Define structs and fill hashtable *)
 let make_struct_body sdecl =
@@ -224,7 +211,7 @@ let struct_field_indices =
       | A.Simple(A.String) -> get_init_val(A.StringLit "")
       | A.Array(d, _) -> L.const_null (L.struct_type context [| i32_t ; L.pointer_type (ltype_of_typ (A.Simple(d))) |])
       | A.Struct(sname) -> L.const_named_struct (lookup_struct_type sname) [||]
-      | _ -> raise (Failure ("notzzzz found"))
+      | _ -> raise (Failure ("not found"))
   in
 
  let build_array_access g_map l_map s i1 i2 builder isAssign = 
@@ -295,8 +282,8 @@ let struct_field_indices =
                            let new_literal = L.build_malloc type_of_new_literal "arr_literal" builder in
                            let first_store = L.build_struct_gep new_literal 0 "first" builder in
                            let second_store = L.build_struct_gep new_literal 1 "second" builder in
-                           let store_it = L.build_store size first_store builder in
-                           let store_it_again = L.build_store new_array second_store builder in
+                           ignore (L.build_store size first_store builder);
+                           ignore (L.build_store new_array second_store builder);
                            let actual_literal = L.build_load new_literal "actual_arr_literal" builder in
                            actual_literal
       | A.Index(a, i) -> let a' = expr builder g_map l_map a in 
@@ -307,14 +294,14 @@ let struct_field_indices =
                          then let first_value = L.build_load extract_value "value" builder in
                               let new_string = L.build_array_malloc i8_t (L.const_int i32_t 2) "tmp" builder in
                               let more = L.build_gep new_string [| L.const_int i32_t 0 |] "tmp2" builder in
-                              let store_it = L.build_store first_value more builder in
+                              ignore(L.build_store first_value more builder);
                               let more = L.build_gep new_string [| L.const_int i32_t 1 |] "tmp2" builder in
-                              let store_it_again = L.build_store (L.const_int i8_t 0) more builder in
+                              ignore(L.build_store (L.const_int i8_t 0) more builder);
                               let new_literal = L.build_malloc (ltype_of_typ (A.Simple(A.String))) "arr_literal" builder in
                               let first_store = L.build_struct_gep new_literal 0 "first" builder in
                               let second_store = L.build_struct_gep new_literal 1 "second" builder in
-                              let store_it = L.build_store (L.const_int i32_t 1) first_store builder in
-                              let store_it_again = L.build_store new_string second_store builder in
+                              ignore(L.build_store (L.const_int i32_t 1) first_store builder);
+                              ignore(L.build_store new_string second_store builder);
                               let actual_literal = L.build_load new_literal "actual_arr_literal" builder in
                               actual_literal
                          else L.build_load extract_value "value" builder
@@ -360,25 +347,18 @@ let struct_field_indices =
                 L.build_neg)
             | A.Not     -> L.build_not) e' "tmp" builder
        | A.Pop(e, op) -> let e' = expr builder g_map l_map e in
-       (match op with
+        (match op with
         | A.Inc -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Add, A.NumLit(1))))); e'                 
-        | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')
-           
+        | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')        
       | A.ArrayAssign(v, i, e) -> let e' = expr builder g_map l_map e in
                                   let i' = expr builder g_map l_map (List.hd i) in
                                   let v' = L.build_load (lookup g_map l_map v) v builder in
                                   let extract_array = L.build_extractvalue v' 1 "extract_ptr" builder in
                                   let extract_value = L.build_gep extract_array [| i' |] "extract_value" builder in
-                                  ignore (L.build_store e' extract_value builder); e'  
-     (* | A.Assign (e1, e2) -> let e2' = expr builder g_map l_map e2 in
-      (match e1 with
-        A.Id s -> ignore (L.build_store e2' (lookup g_map l_map s) builder); e2'
-        | _ -> raise (Failure ("not found"))
-      ) *)
-      
-     | A.Assign (e1, e2) -> let l_val = (addr_of_expr e1 builder g_map l_map) in
+                                  ignore (L.build_store e' extract_value builder); e'   
+      | A.Assign (e1, e2) -> let l_val = (addr_of_expr e1 builder g_map l_map) in
       let e2' = expr builder g_map l_map e2 in
-       ignore (L.build_store e2' l_val builder); e2' 
+       ignore (L.build_store e2' l_val builder); e2'
 
       | A.Dot (e, field) -> let llvalue = (addr_of_expr e builder g_map l_map) in 
       let built_e = expr builder g_map l_map e in

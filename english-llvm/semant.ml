@@ -60,9 +60,9 @@ let check (globals, functions, structs) =
   
   (* Raise an exception of the given rvalue type cannot be assigned to
      the given lvalue type *)
-  let check_assign lvaluet rvaluet err =
+  (* let check_assign lvaluet rvaluet err =
      if lvaluet == rvaluet then lvaluet else raise err
-  in
+  in  *)
 
   let resolve_struct_access sname field = 
     let  s = try List.find (fun t -> t.sname = sname) structs 
