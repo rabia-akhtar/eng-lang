@@ -706,6 +706,11 @@ diff -b fail-init3.err tests/fail-init3.err > fail-init3.diff
 diff -b fail-nomain.err tests/fail-nomain.err > fail-nomain.diff
 ###### SUCCESS
 
+###### Testing fail-pops1
+./english.native < tests/fail-pops1.ell 2> fail-pops1.err >> testall.log
+diff -b fail-pops1.err tests/fail-pops1.err > fail-pops1.diff
+###### SUCCESS
+
 ###### Testing fail-return1
 ./english.native < tests/fail-return1.ell 2> fail-return1.err >> testall.log
 diff -b fail-return1.err tests/fail-return1.err > fail-return1.diff

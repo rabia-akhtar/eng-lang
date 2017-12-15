@@ -313,8 +313,7 @@ let check (globals, functions, structs) =
         (match op with
           | Inc | Dec -> (match t with 
                            Int -> Int
-                         | Float -> Float
-                         | _ -> raise (Failure ("illegal postfix operator " ^ string_of_pop op ^
+                         | _ -> raise (Failure ("illegal postfix operator " ^ string_of_pop op ^ " used with a " ^
                                               string_of_typ t ^ " in " ^ string_of_expr ex)))
         )
       | Noexpr -> Void
