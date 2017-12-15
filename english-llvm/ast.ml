@@ -7,14 +7,13 @@ type pop =
   | Dec 
   | Inc
 
-type dtyp = Int | String | Float
+type dtyp = Int | String | Float |Char
 
 type uop = Neg | Not
 
 type typ = Simple of dtyp
     
     | Bool
-    | Char
     | Void
     | Array of dtyp * int
     | Struct of string
@@ -35,7 +34,6 @@ type expr =
   | Unop of uop * expr
   | Pop of expr * pop 
   | Assign of expr * expr
-  | ArrayAssign of string * expr list * expr
   | ArrayAccess of string * expr 
   | Call of string * expr list
   | Dot of expr * string
@@ -104,7 +102,6 @@ let rec string_of_expr = function
   | ArrayLit(l) -> convert_array l string_of_expr ", "
   | Index(e, l) -> string_of_expr e ^
                    "{|" ^ string_of_expr (List.hd l) ^ "|}"
-  | ArrayAssign(v, l, e) -> v ^ "[" ^ string_of_expr (List.hd l) ^ "]" ^ " = " ^ string_of_expr e
   | CharLit(s) -> Char.escaped s
   | Id(s) -> s
   | Binop(e1, o, e2) ->
@@ -135,6 +132,7 @@ let string_of_d_typ = function
   Int -> "int"
 | String -> "string"
 | Float -> "float"
+| Char -> "char"
 
 let rec repeat c = function
     0 -> ""
@@ -143,7 +141,6 @@ let rec repeat c = function
 let string_of_typ = function
     Bool -> "bool"
   | Void -> "void"
-  | Char -> "char"
   | Simple(d) -> string_of_d_typ d
   | Array(d,n) -> string_of_d_typ d ^ repeat "[]" n
   | Struct(id) -> "struct" ^ id

@@ -13,7 +13,7 @@ let trd (_,_,c) = c;;
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT DECREMENT INCREMENT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR DOT
 
-%token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID
+%token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID LENGTH 
 %token INT CHAR FLOAT BOOL VOID STRING OF STRUCT TRUE FALSE LINDEX RINDEX
 %token <int> NUM_LIT
 %token <float> FLOAT_LIT
@@ -69,6 +69,7 @@ dtyp:
   INT { Int }
 | STRING {String}
 | FLOAT {Float}
+| CHAR {Char}
 
 atyp:
   dtyp dim_list { Array($1, $2) }
@@ -78,7 +79,6 @@ typ:
   | atyp { $1 }
   | BOOL { Bool }
   | VOID { Void}
-  | CHAR {Char}
   | STRUCT ID { Struct ($2) }
 
 dim_list:
@@ -164,7 +164,6 @@ expr:
   | expr DOT ID   { Dot($1,        $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | ID LSQUARE expr RSQUARE {ArrayAccess($1, $3)}
-  | ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssign($1, [$3], $6) }
   | expr index { Index($1, [$2]) }
   | LPAREN expr RPAREN { $2 }
 

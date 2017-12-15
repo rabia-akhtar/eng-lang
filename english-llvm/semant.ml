@@ -121,7 +121,7 @@ let check (globals, functions, structs) =
       | FloatLit _ -> A.Simple(A.Float)
       | BoolLit _ -> Bool
       | StringLit _ -> A.Simple(A.String)
-      | CharLit _ -> Char
+      | CharLit _ -> A.Simple(A.Char)
       | _ -> raise (Failure ("Illegal global initialization"))
   in
 
@@ -210,13 +210,13 @@ let check (globals, functions, structs) =
        locals = []; body = [] }
 
         (StringMap.add "strget"
-     { typ = Char; fname = "strcat"; formals = 
+     { typ = A.Simple(A.Char); fname = "strcat"; formals = 
      [(A.Simple(A.String), "x"); (A.Simple(A.Int), "y")]; 
        locals = []; body = [] }
 
        (StringMap.add "to_lower"
-     { typ = Char; fname = "to_lower"; formals = 
-     [(Char, "x")]; 
+     { typ = A.Simple(A.Char); fname = "to_lower"; formals = 
+     [(A.Simple(A.Char), "x")]; 
        locals = []; body = [] }
 
        (StringMap.add "calloc"
@@ -230,7 +230,7 @@ let check (globals, functions, structs) =
        locals = []; body = [] }
 
        (StringMap.add"print_char"
-     { typ = Void; fname = "print_char"; formals = [(Char, "x")];
+     { typ = Void; fname = "print_char"; formals = [(A.Simple(A.Char), "x")];
        locals = []; body = [] }
 
          (StringMap.add"is_stop_word"
@@ -250,7 +250,7 @@ let check (globals, functions, structs) =
    in
 
   (* Accepted types for print_all *)
-  let print_types = [A.Simple(String); A.Simple(Int); Bool; A.Simple(Float); Char] in
+  let print_types = [A.Simple(String); A.Simple(Int); Bool; A.Simple(Float); A.Simple(A.Char)] in
 
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
@@ -307,10 +307,10 @@ let check (globals, functions, structs) =
     (* Return the type of an expression or throw an exception *)
     let rec expr = function
 	  NumLit _ -> A.Simple(A.Int)
-      | FloatLit _ -> A.Simple(Float)
+      | FloatLit _ -> A.Simple(A.Float)
       | BoolLit _ -> Bool
-      | CharLit _ -> Char
-      | StringLit _ -> A.Simple(String)
+      | CharLit _ -> A.Simple(A.Char)
+      | StringLit _ -> A.Simple(A.String)
       | ArrayLit(l) -> let first_type = expr (List.hd l) in
                          let _ = (match first_type with
                                     Simple _ -> ()
@@ -336,7 +336,7 @@ let check (globals, functions, structs) =
 	       (match op with
            Add | Sub | Mult | Div when t1 = A.Simple(A.Int) && t2 = A.Simple(A.Int) -> A.Simple(A.Int)
          | Add | Sub | Mult | Div when t1 = A.Simple(A.Float) && t2 = A.Simple(A.Float) -> A.Simple(A.Float)
-         | Add | Sub | Mult | Div when t1 = Char && t2 = Char -> Char
+         | Add | Sub | Mult | Div when t1 = A.Simple(A.Char) && t2 = A.Simple(A.Char) -> A.Simple(A.Char)
 	       | Equal | Neq when t1 = t2 -> Bool
 	       | Less | Leq | Greater | Geq when t1 = A.Simple(A.Int) && t2 = A.Simple(Int) -> Bool
          | Less | Leq | Greater | Geq when t1 = A.Simple(A.Float) && t2 = A.Simple(A.Float) -> Bool
@@ -367,19 +367,6 @@ let check (globals, functions, structs) =
         check_type lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
 				     " = " ^ string_of_typ rt ^ " in " ^ 
 				     string_of_expr ex))
-      | ArrayAssign(v, i, e) as ex -> let type_of_left_side =
-                                      if string_of_typ(expr (List.hd i)) != string_of_typ(Simple(Int))
-                                      then raise ( Failure("Array index ('" ^ string_of_expr (List.hd i) ^ "') is not an integer") )
-                                      else
-                                        let type_of_entity = type_of_identifier v in
-                                        (match type_of_entity with
-                                           Array(d, _) -> Simple(d)
-                                         | _ -> raise (Failure ("Entity being indexed ('" ^ v ^"') cannot be array"))) in
-                                      let type_of_right_side = expr e in
-                                      check_type type_of_left_side type_of_right_side
-                                      (Failure ("illegal assnt " ^ string_of_typ type_of_left_side ^
-                                                " = " ^ string_of_typ type_of_right_side ^ " in " ^
-                                                string_of_expr ex))
       | Call(fname, actuals) as call -> let fd = function_decl fname in
          if List.length actuals != List.length fd.formals then
            raise (Failure ("expecting " ^ string_of_int

@@ -50,11 +50,11 @@ in
 let rec ltype_of_typ = function
       A.Simple(A.Int) -> i32_t
     | A.Simple(A.Float) -> f_t
+    | A.Simple(A.Char) -> i8_t
     | A.Bool -> i1_t
     | A.Void -> void_t
     | A.Simple(A.String) -> p_t
     | A.Array(d, _) ->  L.struct_type context [| i32_t ; L.pointer_type (ltype_of_typ (A.Simple(d))) |]
-    | A.Char -> i8_t
     | A.Struct(sname) -> lookup_struct_type sname
     in
 
@@ -174,7 +174,7 @@ let struct_field_indices =
       | A.Simple(A.Float)    -> float_format_str b
       | A.Simple(A.String)   -> string_format_str b
       | A.Bool     -> int_format_str b
-      | A.Char     -> char_format_str b
+      | A.Simple(A.Char)     -> char_format_str b
       | _ -> raise (Failure ("Invalid printf type"))
   in
 
@@ -184,7 +184,7 @@ let struct_field_indices =
     | A.FloatLit _ -> A.Simple(A.Float)
     | A.StringLit _ -> A.Simple(A.String)
     | A.BoolLit _ -> A.Bool
-    | A.CharLit _ -> A.Char
+    | A.CharLit _ -> A.Simple(A.Char)
     | A.Unop(_,e) -> (gen_type g_map l_map) e
     | A.Binop(e1,_,_) -> (gen_type g_map l_map) e1
     | A.Noexpr -> A.Void
@@ -207,7 +207,7 @@ let struct_field_indices =
         A.Simple(A.Int) -> L.const_int i32_t 0
       | A.Simple(A.Float) -> L.const_float f_t 0.0
       | A.Bool -> L.const_int i1_t 0
-      | A.Char -> L.const_int i8_t 0
+      | A.Simple(A.Char) -> L.const_int i8_t 0
       | A.Simple(A.String) -> get_init_val(A.StringLit "")
       | A.Array(d, _) -> L.const_null (L.struct_type context [| i32_t ; L.pointer_type (ltype_of_typ (A.Simple(d))) |])
       | A.Struct(sname) -> L.const_named_struct (lookup_struct_type sname) [||]
@@ -349,13 +349,7 @@ let struct_field_indices =
        | A.Pop(e, op) -> let e' = expr builder g_map l_map e in
         (match op with
         | A.Inc -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Add, A.NumLit(1))))); e'                 
-        | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')        
-      | A.ArrayAssign(v, i, e) -> let e' = expr builder g_map l_map e in
-                                  let i' = expr builder g_map l_map (List.hd i) in
-                                  let v' = L.build_load (lookup g_map l_map v) v builder in
-                                  let extract_array = L.build_extractvalue v' 1 "extract_ptr" builder in
-                                  let extract_value = L.build_gep extract_array [| i' |] "extract_value" builder in
-                                  ignore (L.build_store e' extract_value builder); e'   
+        | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')           
       | A.Assign (e1, e2) -> let l_val = (addr_of_expr e1 builder g_map l_map) in
       let e2' = expr builder g_map l_map e2 in
        ignore (L.build_store e2' l_val builder); e2'
