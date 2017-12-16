@@ -48,6 +48,11 @@ cc -o test-char1.exe test-char1.s c-code.o
 diff -b test-char1.out tests/test-char1.out > test-char1.diff
 ###### SUCCESS
 
+###### Testing test-demo_lcs
+./english.native < tests/test-demo_lcs.ell > test-demo_lcs.ll
+Fatal error: exception Failure("illegal assignment structLongestC = structLongestC in lo = lcs(abd, ab)")
+###### FAILED
+
 ###### Testing test-fib
 ./english.native < tests/test-fib.ell > test-fib.ll
 /usr/local/opt/llvm/bin/llc test-fib.ll > test-fib.s
