@@ -1,6 +1,11 @@
+struct Class{
+  string [] Students;
+  string Essays;
+  int Valid_Word_Count;
+};
+
+
 int main(){
-  string a = calloc(1, 2);
-  string b = "hfeifj";
-  a = string_at(b, 2, a);
+  print_string("JUST A TEST");
   return 0;
 }

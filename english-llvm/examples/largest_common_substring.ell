@@ -20,7 +20,6 @@ struct LongestC lcs(string a, string b){
 	int equal = 1;
 	int longest = 0;
 	string temp;
-	string long = calloc(1, a_s);
 	int count = 0;
 	string x;
 	string y;
