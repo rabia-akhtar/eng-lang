@@ -105,6 +105,7 @@ let check (globals, functions, structs) =
   check_func_decl "is_stop_word";
   check_func_decl "word_count";
   check_func_decl "print_string";
+  check_func_decl "string_at";
 
    
   (**** Checking Global Variables ****)
@@ -235,9 +236,13 @@ let check (globals, functions, structs) =
      { typ = Int; fname = "word_count"; formals = [(String, "x")];
        locals = []; body = [] }
 
+       (StringMap.add"string_at"
+     { typ = String; fname = "string_at"; formals = [(String, "x"); (Int, "x"); (String, "x")];
+       locals = []; body = [] }
+
        (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(String, "x")];
-       locals = []; body = [] }))))))))))))))))))))
+       locals = []; body = [] })))))))))))))))))))))
 
    in
 

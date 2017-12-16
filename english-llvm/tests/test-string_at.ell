@@ -1,0 +1,11 @@
+int main()
+{
+  
+  string a = calloc(1, 2);
+  string b = "plt!";
+  a = string_at(b, 2, a);
+  print_string(a);
+  free(a);
+  return 0;
+
+}

@@ -376,6 +376,14 @@ cc -o test-stopword.exe test-stopword.s c-code.o
 diff -b test-stopword.out tests/test-stopword.out > test-stopword.diff
 ###### SUCCESS
 
+###### Testing test-string_at
+./english.native < tests/test-string_at.ell > test-string_at.ll
+/usr/local/opt/llvm/bin/llc test-string_at.ll > test-string_at.s
+cc -o test-string_at.exe test-string_at.s c-code.o
+./test-string_at.exe
+diff -b test-string_at.out tests/test-string_at.out > test-string_at.diff
+###### SUCCESS
+
 ###### Testing test-stringfunc1
 ./english.native < tests/test-stringfunc1.ell > test-stringfunc1.ll
 /usr/local/opt/llvm/bin/llc test-stringfunc1.ll > test-stringfunc1.s
@@ -629,6 +637,11 @@ diff -b fail-func29.err tests/fail-func29.err > fail-func29.diff
 ###### Testing fail-func3
 ./english.native < tests/fail-func3.ell 2> fail-func3.err >> testall.log
 diff -b fail-func3.err tests/fail-func3.err > fail-func3.diff
+###### SUCCESS
+
+###### Testing fail-func30
+./english.native < tests/fail-func30.ell 2> fail-func30.err >> testall.log
+diff -b fail-func30.err tests/fail-func30.err > fail-func30.diff
 ###### SUCCESS
 
 ###### Testing fail-func4

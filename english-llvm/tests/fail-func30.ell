@@ -1,0 +1,12 @@
+int foo() {}
+
+void bar() {}
+
+int string_at() {} /* Should not be able to define this function */
+
+void baz() {}
+
+int main()
+{
+  return 0;
+}
