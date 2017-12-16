@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 
 int test2(string a, int words){
   int i;
@@ -45,6 +46,23 @@ struct Class{
   string Essays;
   int Valid_Word_Count;
 };
+=======
+int valid_essay(struct Class c){
+  return 0;
+}
+
+string readfile(string file){
+  
+  string s1 = calloc(1, 2000);
+  file_ptr fp = open(file, "rb");
+  int size = read(s1, 1, 2000, fp);
+  close(fp);
+  print(size);
+  print_string(s1);
+  return s1;
+
+}
+>>>>>>> 982842d5b2edf459621c20f1eda0c2f973f1bb77
 
 
 int main(){
