@@ -1,5 +1,4 @@
 int main() {
-
 string[] b;
 b = ["michelle","rabia","nivita"];
 print_string(b{|0|});
