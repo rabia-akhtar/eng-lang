@@ -1,0 +1,11 @@
+struct Object {
+	int x;
+	char y;
+};
+
+int main()
+{
+  struct Object thing;
+  thing.z = 'x';
+  return 0;
+}
