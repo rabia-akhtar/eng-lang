@@ -50,7 +50,19 @@ diff -b test-char1.out tests/test-char1.out > test-char1.diff
 
 ###### Testing test-demo_lcs
 ./english.native < tests/test-demo_lcs.ell > test-demo_lcs.ll
-Fatal error: exception Failure("illegal assignment structLongestC = structLongestC in lo = lcs(abd, ab)")
+/usr/local/opt/llvm/bin/llc test-demo_lcs.ll > test-demo_lcs.s
+cc -o test-demo_lcs.exe test-demo_lcs.s c-code.o
+./test-demo_lcs.exe
+diff -b test-demo_lcs.out tests/test-demo_lcs.out > test-demo_lcs.diff
+###### SUCCESS
+
+###### Testing test-demo_wordcount
+./english.native < tests/test-demo_wordcount.ell > test-demo_wordcount.ll
+/usr/local/opt/llvm/bin/llc test-demo_wordcount.ll > test-demo_wordcount.s
+cc -o test-demo_wordcount.exe test-demo_wordcount.s c-code.o
+./test-demo_wordcount.exe
+diff -b test-demo_wordcount.out tests/test-demo_wordcount.out > test-demo_wordcount.diff
+FAILED test-demo_wordcount.out differs from tests/test-demo_wordcount.out
 ###### FAILED
 
 ###### Testing test-fib
