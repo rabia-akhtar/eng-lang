@@ -60,7 +60,8 @@ let check (globals, functions, structs) =
   (* Raise an exception of the given rvalue type cannot be assigned to
      the given lvalue type *)
   let check_assign lvaluet rvaluet err =
-     if lvaluet == rvaluet then lvaluet else raise err
+       if (String.compare (string_of_typ lvaluet) (string_of_typ rvaluet)) == 0
+      then lvaluet else raise err
   in
 
   let resolve_struct_access sname field = 
@@ -122,6 +123,7 @@ let check (globals, functions, structs) =
       | BoolLit _ -> Bool
       | StringLit _ -> String
       | CharLit _ -> Char
+      | StructLit s -> Struct s
       | _ -> raise (Failure ("Illegal global initialization"))
   in
 
@@ -292,6 +294,7 @@ let check (globals, functions, structs) =
       | BoolLit _ -> Bool
       | CharLit _ -> Char
       | StringLit _ -> String
+      | StructLit s -> Struct s
       | Id s -> type_of_identifier s
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
 	       (match op with
@@ -375,7 +378,7 @@ let check (globals, functions, structs) =
     let check_var_init = function 
       VarDecl(t,_,e) as ex -> if e != Noexpr then
         let v = expr e in
-          if (t != v) then
+          if ((String.compare (string_of_typ t) (string_of_typ v)) != 0) then
             raise (Failure ("illegal initialization of" ^ string_of_typ t ^
              " = " ^ string_of_typ v ^ " in " ^ string_of_vdecl ex)) in
 

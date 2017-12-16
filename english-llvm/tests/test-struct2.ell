@@ -14,6 +14,8 @@ struct Doc returnDoc(){
 
 int main()
 {
-  returnDoc();
+  struct Doc essay = returnDoc();
+  print_string(essay.File);
+  print(essay.Word_count);
   return 0;
 }

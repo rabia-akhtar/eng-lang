@@ -25,6 +25,7 @@ type expr =
   | FloatLit of float
   | BoolLit of bool
   | StringLit of string
+  | StructLit of string
   | CharLit of char
   | Id of string
   | Binop of expr * op * expr
@@ -90,6 +91,7 @@ let rec string_of_expr = function
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | StringLit(s) -> s
+  | StructLit(s) -> "Struct " ^ s
   | CharLit(s) -> Char.escaped s
   | Id(s) -> s
   | Binop(e1, o, e2) ->
