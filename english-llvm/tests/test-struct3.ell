@@ -1,0 +1,16 @@
+struct Doc {
+	string File;
+	int Word_count;
+};
+
+int main()
+{
+  struct Doc doc;
+  struct Doc essay;
+  doc.File = "this is an essay";
+  doc.Word_count = 20;
+  essay = doc;
+  print_string(essay.File);
+  print(essay.Word_count);
+  return 0;
+}
