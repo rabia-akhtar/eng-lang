@@ -1,8 +1,19 @@
-struct Class{
-  string [] Students;
-  string Essays;
-  int Valid_Word_Count;
-};
+
+int valid_essay(struct Class c){
+  return 0;
+}
+
+string readfile(string file){
+  
+  string s1 = calloc(1, 2000);
+  file_ptr fp = open(file, "rb");
+  int size = read(s1, 1, 2000, fp);
+  close(fp);
+  print(size);
+  print_string(s1);
+  return s1;
+
+}
 
 
 int main(){
