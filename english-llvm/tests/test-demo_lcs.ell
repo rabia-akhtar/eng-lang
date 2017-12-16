@@ -1,0 +1,111 @@
+/* this demo finds the longest common substring of two text files */
+/* function finds longest common substring */
+
+/* struct for storing longest common substring and length */
+struct LongestC {
+	int L_count;
+	string L_string;
+};
+
+/* function finds longest common substring of two strings and returns the substring and length in struct */
+struct LongestC lcs(string a, string b){
+
+	/* declare variables */
+	int a_s = strlen(a);
+	int a_t;
+	int b_s = strlen(b);
+	int b_t;
+	int i;
+	int j;
+	int equal = 1;
+	int longest = 0;
+	string temp;
+	string long = calloc(1, a_s);
+	int count = 0;
+	string x;
+	string y;
+	struct LongestC result;
+	result.L_string = calloc(1, a_s);
+	result.L_count = 0;
+
+	/* iterate to find longest substring */
+	for (i = 0; i< a_s; i ++) {
+		for (j = 0; j < b_s; j++){
+			x = calloc(1,2);
+			y = calloc(1,2);
+			x = string_at(a, i, x);
+			y = string_at(b, j, y);
+			temp = calloc(1, a_s);
+			if (strcmp(x, y) == 0){
+				a_t = i;
+				b_t = j;
+				while(equal == 1 && a_t< a_s && b_t< b_s){
+					free(x);
+					free(y);
+					x = calloc(1,2);
+					y = calloc(1,2);
+					x = string_at(a, a_t, x);
+					y = string_at(b, b_t, y);	
+					if (strcmp(x, y) == 0){
+						strcat(temp, x);
+						count++;
+
+					}
+					if(strcmp(x, y) != 0){
+						equal = 0;
+					}
+					a_t++;
+					b_t++;
+					
+				}
+
+				if (count >longest){
+					result.L_count = count;
+					longest = count;
+					strcpy(result.L_string, temp);
+				
+				}
+				count = 0;
+				equal = 1;
+			}
+			/* free allocated memory */
+			free(x);
+			free(y);
+			free(temp);
+		}
+	}	
+	/* return struct containing longest common substring */
+	return result;
+}
+
+/* function takes in filepath, reads in text and returns string */
+string read_Essay(string file){
+   string s1 = calloc(1, 2000);
+   file_ptr fp = open(file, "rb");
+   int size = read(s1, 1, 2000, fp);
+   close(fp);
+   return s1;
+
+}
+
+int main()
+{
+	struct LongestC l;
+
+	/* read in essays */
+	string rabia = read_Essay("tests/demo_lcs_one.txt");
+	string nivita = read_Essay("tests/demo_lcs_two.txt");
+
+	/* find longest common substring */
+	l = lcs(rabia, nivita);
+
+	/* print result */
+	print(l.L_count);
+	print_string(l.L_string);
+
+	/* free allocated memory */
+	free(rabia);
+	free(nivita);
+	free(l.L_string);
+  	return 0;
+}
