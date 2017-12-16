@@ -416,6 +416,14 @@ cc -o test-struct1.exe test-struct1.s c-code.o
 diff -b test-struct1.out tests/test-struct1.out > test-struct1.diff
 ###### SUCCESS
 
+###### Testing test-struct2
+./english.native < tests/test-struct2.ell > test-struct2.ll
+/usr/local/opt/llvm/bin/llc test-struct2.ll > test-struct2.s
+cc -o test-struct2.exe test-struct2.s c-code.o
+./test-struct2.exe
+diff -b test-struct2.out tests/test-struct2.out > test-struct2.diff
+###### SUCCESS
+
 ###### Testing test-var1
 ./english.native < tests/test-var1.ell > test-var1.ll
 /usr/local/opt/llvm/bin/llc test-var1.ll > test-var1.s
