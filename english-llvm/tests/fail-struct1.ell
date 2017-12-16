@@ -1,0 +1,15 @@
+/* Test recursive struct definition */
+struct Node {
+	struct Node head;
+  struct Node next;
+};
+
+int main()
+{
+  struct Node node;
+  struct Node head;
+  struct Node next;
+  node.head = head;
+  node.next = next;
+  return 0;
+}

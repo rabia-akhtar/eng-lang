@@ -1,3 +1,4 @@
+/* Test assigning one struct to another */
 struct Doc {
 	string File;
 	int Word_count;
@@ -9,6 +10,8 @@ int main()
   struct Doc essay;
   doc.File = "this is an essay";
   doc.Word_count = 20;
+  essay.File = "this should be erased";
+  essay.Word_count = 0;
   essay = doc;
   print_string(essay.File);
   print(essay.Word_count);

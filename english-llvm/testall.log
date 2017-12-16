@@ -766,6 +766,16 @@ diff -b fail-return1.err tests/fail-return1.err > fail-return1.diff
 diff -b fail-return2.err tests/fail-return2.err > fail-return2.diff
 ###### SUCCESS
 
+###### Testing fail-struct1
+./english.native < tests/fail-struct1.ell 2> fail-struct1.err >> testall.log
+diff -b fail-struct1.err tests/fail-struct1.err > fail-struct1.diff
+###### SUCCESS
+
+###### Testing fail-struct2
+./english.native < tests/fail-struct2.ell 2> fail-struct2.err >> testall.log
+diff -b fail-struct2.err tests/fail-struct2.err > fail-struct2.diff
+###### SUCCESS
+
 ###### Testing fail-while1
 ./english.native < tests/fail-while1.ell 2> fail-while1.err >> testall.log
 diff -b fail-while1.err tests/fail-while1.err > fail-while1.diff
