@@ -1,3 +1,4 @@
+/* Test recursive struct definition */
 struct Node {
 	struct Node head;
   struct Node next;

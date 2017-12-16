@@ -1,3 +1,4 @@
+/* Test undefined struct field access */
 struct Object {
 	int x;
 	char y;

@@ -1,3 +1,4 @@
+/* Test file io operations */
 int main(){
    file_ptr fp;
    fp = open("tests/test-write.txt", "wb");

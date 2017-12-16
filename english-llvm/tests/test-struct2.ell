@@ -1,3 +1,4 @@
+/* Test returning structs from functions and assigning the value */
 struct Doc {
 	string File;
 	int Word_count;
