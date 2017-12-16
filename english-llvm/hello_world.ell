@@ -1,40 +1,42 @@
 
-int test2(string a, int words){
-  int i;
-  int len = strlen(a);
-  int start = 0;
-  string b;
-  string temp = calloc(1,30);
-  int j;
-  int w = 0;
-  
-  for(i = 0; i<len; i++){
-    b = calloc(1,2);
-    b = string_at(a,i,b);
-    if(strcmp(b, " ") == 0){
-      j = start;
-      for(j = start; j <i; j++){
-      b = string_at(a,j,b);
-        strcat(temp, b);
+struct Class{
+	string [] Students;
+	string [] Essays;
+};
 
-      }
-
-      print_string(temp);
-      free(temp);
-      temp = calloc(1,30);
-      start = i+1;
-      print(i);
-    }
-    free(b);
-  }
-  return 0;
+int follow_word_count(struct Class c){
+	int i;
+	string d;
+	string e;
+	string f;
+	for (i = 0; i<5; i++){
+		d = c.Students{|i|};
+		e = c.Essays{|i|};
+		f = read_Essay(e);
+		print_string(f);
+		free(f);
+		print_string(d);
+	}
+	return 0;
 }
+
+/* function takes in filepath, reads in text and returns string */
+string read_Essay(string file){
+   string s1 = calloc(1, 2000);
+   file_ptr fp = open(file, "rb");
+   int size = read(s1, 1, 2000, fp);
+   close(fp);
+   return s1;
+}
+
 int main() {
-  string [] test;
-  int i;
-  string g = "this is a test right now";
-  test = ["hi","hello","there"];
-  i = word_count(g);
-  test2(g, i);
+
+  struct Class cl;
+  string [] s = ["candace","emily", "michele", "nivita", "rabia"];
+  string [] e = ["tests/candace.txt", "tests/emily.txt", "tests/michele.txt", "tests/nivita.txt", "tests/rabia.txt"];
+  cl.Students = s;
+  cl.Essays = e;
+  follow_word_count(cl);
   return 0;
+
 }
