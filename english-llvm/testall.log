@@ -384,6 +384,11 @@ cc -o test-printstring.exe test-printstring.s c-code.o
 diff -b test-printstring.out tests/test-printstring.out > test-printstring.diff
 ###### SUCCESS
 
+###### Testing test-relevant
+./english.native < tests/test-relevant.ell > test-relevant.ll
+Fatal error: exception Parsing.Parse_error
+###### FAILED
+
 ###### Testing test-stopword
 ./english.native < tests/test-stopword.ell > test-stopword.ll
 /usr/local/opt/llvm/bin/llc test-stopword.ll > test-stopword.s
