@@ -34,6 +34,7 @@ let trd (_,_,c) = c;;
 %left TIMES DIVIDE
 %left DOT 
 %right NOT NEG
+%left LINDEX
 
 %start program
 %type <Ast.program> program
@@ -85,8 +86,10 @@ dim_list:
   LSQUARE RSQUARE { 1 }
 | LSQUARE RSQUARE dim_list { 1 + $3 }
 
+
+
 index:
-  LINDEX expr RINDEX { $2 }
+| LINDEX expr RINDEX { $2}
 
 vdecl_list:
     /* nothing */    { [] }
@@ -135,15 +138,17 @@ val_list:
 simple_arr_literal:
     LSQUARE val_list RSQUARE { $2 }
 
+
 expr:
     NUM_LIT          { NumLit($1) }
   | FLOAT_LIT        { FloatLit($1) }
   | STRING_LIT       { StringLit($1) }
   | CHAR_LITERAL     { CharLit($1)}
   | simple_arr_literal { ArrayLit($1)}
+  | expr index       { Index($1, [$2]) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
-  | ID               { Id($1) }
+  | ID              { Id($1) }
   | id INCREMENT   { Pop($1, Inc) }
   | id DECREMENT   { Pop($1, Dec) }
   | expr PLUS   expr { Binop ($1, Add,   $3) }
@@ -160,11 +165,10 @@ expr:
   | expr OR     expr { Binop ($1, Or,    $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
-  | expr ASSIGN expr   { Assign($1,        $3) }
+  | expr ASSIGN expr   { Assign($1, $3) }
   | expr DOT ID   { Dot($1,        $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | ID LSQUARE expr RSQUARE {ArrayAccess($1, $3)}
-  | expr index { Index($1, [$2]) }
   | LPAREN expr RPAREN { $2 }
 
 

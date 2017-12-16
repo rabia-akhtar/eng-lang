@@ -318,7 +318,8 @@ let check (globals, functions, structs) =
                                  ) in
                          let _ = List.iter (fun x -> if string_of_typ(expr x) == string_of_typ first_type then ()
                                                      else raise (Failure ("'" ^ string_of_expr x ^ "' doesn't match array's type"))) l in
-                         Array((match first_type with Simple(x) -> x), 1)
+                         Array((match first_type with Simple(x) -> x
+                                 | _ -> raise(Failure("not array type"))), 1)  
       | ArrayAccess(s, e1) -> let _ = (match (expr e1) with
                                         Simple(Int) -> Simple(Int) (* || A.Simple(A.String) -> A.Simple(A.String) || A.Simple(A.Float) -> A.Simple(A.Float) *)
                                        | _ -> raise (Failure ("attempting to access with a non integer type"))) in

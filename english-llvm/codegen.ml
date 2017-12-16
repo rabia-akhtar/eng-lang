@@ -50,11 +50,11 @@ in
 let rec ltype_of_typ = function
       A.Simple(A.Int) -> i32_t
     | A.Simple(A.Float) -> f_t
-    | A.Simple(A.Char) -> i8_t
     | A.Bool -> i1_t
     | A.Void -> void_t
     | A.Simple(A.String) -> p_t
     | A.Array(d, _) ->  L.struct_type context [| i32_t ; L.pointer_type (ltype_of_typ (A.Simple(d))) |]
+    | A.Simple(A.Char) -> i8_t
     | A.Struct(sname) -> lookup_struct_type sname
     in
 
@@ -349,7 +349,7 @@ let struct_field_indices =
        | A.Pop(e, op) -> let e' = expr builder g_map l_map e in
         (match op with
         | A.Inc -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Add, A.NumLit(1))))); e'                 
-        | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')           
+        | A.Dec -> ignore(expr builder g_map l_map (A.Assign(e, A.Binop(e, A.Sub, A.NumLit(1))))); e')        
       | A.Assign (e1, e2) -> let l_val = (addr_of_expr e1 builder g_map l_map) in
       let e2' = expr builder g_map l_map e2 in
        ignore (L.build_store e2' l_val builder); e2'
