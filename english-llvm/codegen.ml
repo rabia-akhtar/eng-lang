@@ -225,6 +225,7 @@ let struct_field_indices =
   (* Return addr of lhs expr *)
   let addr_of_expr expr builder g_map l_map = match expr with
     A.Id(id) -> (lookup g_map l_map id) 
+  | A.StructLit (s) ->(lookup g_map l_map s) 
   | A.Dot (e1, field) ->
        (match e1 with
       A.Id s -> let etype = fst( 
@@ -242,7 +243,7 @@ let struct_field_indices =
         | _ -> raise (Failure("not found"))
        with Not_found -> raise (Failure("not found" ^ s)))
        | _ -> raise (Failure("lhs not found")))
-       | _ -> raise (Failure("addr not found"))
+   | _ -> raise (Failure("addr not found"))
 
   in
 
@@ -253,6 +254,7 @@ let struct_field_indices =
       | A.StringLit s -> L.build_global_stringptr s "tmp" builder
       | A.CharLit c -> L.const_int i8_t (Char.code c)
       | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
+      | A.StructLit t -> (lookup g_map l_map t)
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id s -> L.build_load (lookup g_map l_map s) s builder
       | A.Binop (e1, op, e2) ->
