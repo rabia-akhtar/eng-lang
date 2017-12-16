@@ -1,74 +1,40 @@
 
-int test_f(string [] a){
-  a[0] = "EMILY";
+int test2(string a, int words){
+  int i;
+  int len = strlen(a);
+  int start = 0;
+  string b;
+  string temp = calloc(1,30);
+  int j;
+  int w = 0;
+  
+  for(i = 0; i<len; i++){
+    b = calloc(1,2);
+    b = string_at(a,i,b);
+    if(strcmp(b, " ") == 0){
+      j = start;
+      for(j = start; j <i; j++){
+      b = string_at(a,j,b);
+        strcat(temp, b);
+
+      }
+
+      print_string(temp);
+      free(temp);
+      temp = calloc(1,30);
+      start = i+1;
+      print(i);
+    }
+    free(b);
+  }
   return 0;
 }
-int merge_helper(int a[], int l, int m, int r){
-  
-  int n1 = m-l +1;
-  int n2 = r -m;
-  int left [n1];
-  int right [n2];
-
-  int i; 
-  int j;
-
-  for(i =0; i <n1; i = i+1){
-    left[i] = a[1 + i];
-  }
-  for(j =0; j<n2; j= j+1){
-  right[j] = a[m +1 + j];
-  }
-
-  i = 0;
-  j = 0;
-  int k = 1;
-
-  while ( i < n1 && j< n2){
-
-    if (strcmp(left[i],right[j]) > 0){
-      a[k] = left[i];
-      i = i +1;
-    }
-    else{
-      a[k] = r[j];
-      j = j+1;
-    }
-    k = k + 1;
-    while (i <n1){
-
-    a[k] = left[i];
-    i = i +1;
-    k = k+1;
-    }
-    while(j <n2){
-    a[k] = right[j];
-    j = j+1;
-    k = k+1;
-    }
-
-    return 0;
-  }
-
-int merge_sort(string a[], int l, int r){
-  if(l <r){
-    int m = l+(r-l)/2;
-
-    merge_sort(a, l, m);
-    merge_sort(a, m+1, r);
-
-    merge_helper(a, l, m, r);
-  }
-}
-
-
-
-}
-
 int main() {
   string [] test;
+  int i;
+  string g = "this is a test right now";
   test = ["hi","hello","there"];
-  test_f(test);
-  print_string(test{|0|});
+  i = word_count(g);
+  test2(g, i);
   return 0;
 }

@@ -139,6 +139,9 @@ let struct_field_indices =
   let word_count_t = L.function_type i32_t [| p_t |] in 
   let word_count_func = L.declare_function "word_count" word_count_t the_module in
 
+  let string_at_t = L.function_type p_t [| p_t; i32_t ;p_t |] in 
+  let string_at_func = L.declare_function "string_at" string_at_t the_module in
+
   (* Declare heap storage function *)
   let calloc_t = L.function_type p_t [| i32_t ; i32_t|] in 
   let calloc_func = L.declare_function "calloc" calloc_t the_module in
@@ -400,6 +403,8 @@ let struct_field_indices =
             L.build_call is_stop_word_func (Array.of_list x) "is_stop_word" builder
       | A.Call("word_count", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
           L.build_call word_count_func (Array.of_list x) "word_count" builder
+      | A.Call("string_at", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
+          L.build_call string_at_func (Array.of_list x) "string_at" builder
       | A.Call ("print_float", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->

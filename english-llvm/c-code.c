@@ -120,6 +120,12 @@ int word_count(char * str){
   return count;
 }
 
+char * string_at(char* str, int i, char * buf){
+  char a = str[i];
+  *buf = a;
+  return buf;
+}
+
 #ifdef BUILD_TEST
 int main()
 {
