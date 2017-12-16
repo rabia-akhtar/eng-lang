@@ -1,0 +1,125 @@
+/* code has two functions, one for finding top words and one for finding common top words to check for similarity between two documents */
+
+/* struct for keeping track of word frequency */
+struct WordFreq{
+	    string [100] Top_words;
+	    int[100] Top_counts;
+	};
+
+/* function returns top int top number of most frequent words in string, exclusing common stop words */
+string [] relevant_words(string essay, int top){
+	
+	int size = word_count(essay);
+
+	string [size] words; 
+
+	/* todo */
+	words = split_at(essay, " ", words);
+
+	/* count the frequency of each word in the text document and store in count */
+	/* still considering a data structure for this */
+
+	int [size] count;
+
+	int i;
+	int j;
+	int found = 0;
+	string current;
+
+	for (i = 0; i < size; i = i + 1){
+		current = words[i]; 
+		/* don't count stop words */
+		if (is_stop_word(current) == 0){
+		for (j = 0; j< size; j = j+1){
+		    /* check if same word has been found */
+			if (found == 0){
+	    		if (strcmp(current, words[j]) == 0){ 
+	    			found = 1;
+	    			count [j]++;
+	    		}
+			}
+		}
+		found = 0;
+	
+	}
+	}
+
+	/* find top words */
+	struct WordFreq word_freq;
+
+	int max = 0;
+	int max_index = 0; 
+	string max_word;
+	int k;
+
+	for (k = 0; k< top; k = k +1){
+		for (i = 0; i < size; i = i + 1){
+			if (max < count[i]){
+				int present = 0;
+				for (j = 0; j<top; j = j+1){ 
+					/* check if value already put in top words */
+					if (count[i] == word_freq.top_counts[j]){	    					if (string_compare(words[i] == word_freq.top_words[j])){
+							present = 1;
+					}
+					}
+				}
+				if(present == 0){ 
+					max_index = i;
+					max = count[i];
+
+				}
+		}
+		}
+
+		word_freq.top_words[k] = words[max_index];
+		word_freq.top_counts[k] = count[max_index];
+		max = 0;
+	    	}
+	 return word_frequency.Top_words;
+}
+
+/* check for simlarity of content between two files, takes in top, top i words are compared, returns number of common top words. */
+int check_similar(string file1, string file2, int top){
+
+	/* find relevant words in each document */
+	/* the hard coded numbers can be changed or made input */ // input would be ideal
+	string [top] relevant1 = find_relevant(file1, top); 
+	string [top] relevant2 = find_relevant(file2, top);
+
+	/* check for similarity in content */
+	int i;
+	int j;
+	int similar = 0;
+	for(i = 0; i< top; i = i + 1){
+		for(j = 0; j< top; j = j + 1){
+			if(strcmp(relevant1[i], relevant2[i]) == 0){				
+			similar = similar + 1; 
+			}
+		}
+	}
+
+	return similar;
+	}
+
+int main(){
+
+	string s1 = calloc(1, 2000);
+	file_ptr fp1 = open(file_name, "rb");
+	int size1 = read(s1, 1, 2000, fp);
+	close(fp1);
+
+	string s2 = calloc(1, 2000);
+	file_ptr fp2 = open(file_name, "rb");
+	int size2 = read(s1, 1, 2000, fp);
+	close(fp2);
+
+	int result = check_similarity(s1, s2, 30);
+
+	print(result);
+
+	free(s1);
+	free(s2);
+	return 0;
+
+}
+

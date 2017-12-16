@@ -1,0 +1,31 @@
+int valid_essay(string a){
+
+  if(word_count(a) < 48){
+    return 1;
+  }
+
+	return 0;
+}
+
+string read_essay(string file){
+  
+  string s1 = calloc(1, 2000);
+  file_ptr fp = open(file, "rb");
+  int size = read(s1, 1, 2000, fp);
+  close(fp);
+  print(size);
+  print_string(s1);
+  return s1;
+
+}
+
+int main(){
+  string rabia = read_essay("tests/demo_lcs_one.txt");
+  string nivita = read_essay("tests/demo_lcs_two.txt");
+	print_string(rabia);
+  print(word_count(rabia));
+  print(word_count(nivita));
+  print_string(nivita);
+	return 0;
+
+}

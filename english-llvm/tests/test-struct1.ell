@@ -1,3 +1,5 @@
+/* Test struct declaration and dot operator assignment and access */
+
 struct Book {
 	int Id;
 	string Title;

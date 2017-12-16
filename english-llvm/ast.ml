@@ -28,6 +28,7 @@ type expr =
   | StringLit of string
   | ArrayLit of expr list
   | Index of expr * expr list
+  | StructLit of string
   | CharLit of char
   | Id of string
   | Binop of expr * op * expr
@@ -102,6 +103,7 @@ let rec string_of_expr = function
   | ArrayLit(l) -> convert_array l string_of_expr ", "
   | Index(e, l) -> string_of_expr e ^
                    "{|" ^ string_of_expr (List.hd l) ^ "|}"
+  | StructLit(s) -> "Struct " ^ s
   | CharLit(s) -> Char.escaped s
   | Id(s) -> s
   | Binop(e1, o, e2) ->

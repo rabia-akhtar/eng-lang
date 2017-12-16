@@ -1,4 +1,5 @@
 
+
 int test2(string a, int words){
   int i;
   int len = strlen(a);
@@ -38,3 +39,16 @@ int main() {
   test2(g, i);
   return 0;
 }
+
+struct Class{
+  string [] Students;
+  string Essays;
+  int Valid_Word_Count;
+};
+
+
+int main(){
+  print_string("JUST A TEST");
+  return 0;
+}
+

@@ -1,0 +1,22 @@
+/* Test returning structs from functions and assigning the value */
+struct Doc {
+	string File;
+	int Word_count;
+};
+
+struct Doc returnDoc(){
+  struct Doc doc;
+  doc.File = "this is an essay";
+  doc.Word_count = 20;
+  print_string(doc.File);
+  print(doc.Word_count);
+  return doc;
+}
+
+int main()
+{
+  struct Doc essay = returnDoc();
+  print_string(essay.File);
+  print(essay.Word_count);
+  return 0;
+}

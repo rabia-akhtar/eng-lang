@@ -68,12 +68,12 @@ TESTS = add1 arith1 arith2 arith3 fib for1 for2 func1 func2 func3	\
     func4 func5 func6 func7 func8 gcd2 gcd global1 global2 global3	\
     hello if1 if2 if3 if4 if5 local1 local2 ops1 ops2 var1 var2		\
     while1 while2 printbig printstring open1 write1 struct1 stringinit \
-    stringfunc1 stringfunc2 char1 pops1 alloc
+    stringfunc1 stringfunc2 char1 pops1 alloc struct2 struct3
 
 FAILS = assign1 assign2 assign3 dead1 dead2 expr1 expr2 for1 for2	\
     for3 for4 for5 func1 func2 func3 func4 func5 func6 func7 func8	\
     func9 global1 global2 if1 if2 if3 nomain return1 return2 while1	\
-    while2
+    while2 pops1 struct1 struct2
 
 TESTFILES = $(TESTS:%=test-%.ell) $(TESTS:%=test-%.out) \
 	    $(FAILS:%=fail-%.ell) $(FAILS:%=fail-%.err)

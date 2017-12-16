@@ -1,0 +1,78 @@
+/* this code sorts a list of strings using mergesort. In this example, it is of an instructor wanting to sort student names in alphebetical order */
+
+/* merge sort helper function*/
+int merge_helper(int a[], int l, int m, int r){
+  
+  int n1 = m-l +1;
+  int n2 = r -m;
+  int left [n1];
+  int right [n2];
+
+  int i; 
+  int j;
+
+  /* copy data to temporary arrays */
+  for(i =0; i <n1; i = i+1){
+    left[i] = a[1 + i];
+  }
+  for(j =0; j<n2; j= j+1){
+  right[j] = a[m +1 + j];
+  }
+
+  /* merge arrays */
+  i = 0;
+  j = 0;
+  int k = 1;
+
+  while ( i < n1 && j< n2){
+
+    if (strcmp(left[i],right[j]) > 0){
+      a[k] = left[i];
+      i = i +1;
+    }
+    else{
+      a[k] = r[j];
+      j = j+1;
+    }
+    k = k + 1;
+    }
+
+    /* copy remainder of left */
+    while (i <n1){
+
+    a[k] = left[i];
+    i = i +1;
+    k = k+1;
+    }
+
+
+    /* copy remainder of right */
+    while(j <n2){
+    a[k] = right[j];
+    j = j+1;
+    k = k+1;
+    }
+   return 0;
+    
+  }
+
+/* merge sort function */
+int merge_sort(string a[], int l, int r){
+  if(l <r){
+    int m = l+r/2;
+    merge_sort(a, l, m);
+    merge_sort(a, m+1, r);
+
+    merge_helper(a, l, m, r);
+  }
+  return 0;
+}
+
+
+
+int main() {
+  string [] test;
+  test = ["emily", "rabia", "nvita", "michele", "candace"];
+  merge_sort(test);
+  return 0;
+}

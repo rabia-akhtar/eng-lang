@@ -106,6 +106,7 @@ let check (globals, functions, structs) =
   check_func_decl "is_stop_word";
   check_func_decl "word_count";
   check_func_decl "print_string";
+  check_func_decl "string_at";
 
    
   (**** Checking Global Variables ****)
@@ -122,6 +123,7 @@ let check (globals, functions, structs) =
       | BoolLit _ -> Bool
       | StringLit _ -> A.Simple(A.String)
       | CharLit _ -> A.Simple(A.Char)
+      | StructLit s -> Struct s
       | _ -> raise (Failure ("Illegal global initialization"))
   in
 
@@ -245,10 +247,13 @@ let check (globals, functions, structs) =
      { typ = A.Simple(A.Int); fname = "word_count"; formals = [(A.Simple(A.String), "x")];
        locals = []; body = [] }
 
-       (StringMap.singleton "print_string"
+      (StringMap.add"string_at"
+     { typ = A.Simple(A.String); fname = "string_at"; formals = [(A.Simple(A.String), "x"); (A.Simple(A.Int), "x"); (A.Simple(A.String), "x")];
+       locals = []; body = [] } 
 
+      (StringMap.singleton "print_string"
      { typ = Void; fname = "print_string"; formals = [(A.Simple(A.String), "x")];
-       locals = []; body = [] })))))))))))))))))))))
+       locals = []; body = [] }))))))))))))))))))))))
 
 
    in
@@ -336,6 +341,8 @@ let check (globals, functions, structs) =
                             Array(d, _) -> Simple(d)
                           | Simple(String) -> Simple(String)
                           | _ -> raise (Failure ("Entity being indexed ('" ^ string_of_expr a ^"') cannot be array")))
+
+      | StructLit s -> Struct s
       | Id s -> type_of_identifier s
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
 	       (match op with
@@ -362,9 +369,9 @@ let check (globals, functions, structs) =
         (match op with
           | Inc | Dec -> (match t with 
                            A.Simple(A.Int) -> A.Simple(A.Int)
-                         | A.Simple(A.Float) -> A.Simple(A.Float)
-                         | _ -> raise (Failure ("illegal postfix operator " ^ string_of_pop op ^
+                         | _ -> raise (Failure ("illegal postfix operator " ^ string_of_pop op ^ " used with a " ^
                                               string_of_typ t ^ " in " ^ string_of_expr ex)))
+
         )
       | Noexpr -> Void
       | Assign(var, e) as ex -> let lt = expr var
