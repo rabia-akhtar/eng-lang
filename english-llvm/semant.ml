@@ -237,6 +237,10 @@ let check (globals, functions, structs) =
      { typ = A.Simple(A.Int); fname = "is_stop_word"; formals = [(A.Simple(A.String), "x")];
        locals = []; body = [] }
 
+           (StringMap.add"string_at"
+     { typ = A.Simple(A.String); fname = "string_at"; formals = [(A.Simple(A.String), "x"); (A.Simple(A.Int), "x"); (A.Simple(String), "x")];
+       locals = []; body = [] }
+
          (StringMap.add"word_count"
      { typ = A.Simple(A.Int); fname = "word_count"; formals = [(A.Simple(A.String), "x")];
        locals = []; body = [] }
@@ -244,7 +248,7 @@ let check (globals, functions, structs) =
        (StringMap.singleton "print_string"
 
      { typ = Void; fname = "print_string"; formals = [(A.Simple(A.String), "x")];
-       locals = []; body = [] }))))))))))))))))))))
+       locals = []; body = [] })))))))))))))))))))))
 
 
    in
