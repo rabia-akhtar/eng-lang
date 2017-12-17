@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage{fouriernc}
 \usepackage{listings}
 \usepackage{color}
 
@@ -24,18 +25,37 @@
 }
 
 
-\title{The English Language \\ Language \\}
-
-\author{Rabia Akhtar (ra2805) \\ Emily Bau (eb3029) \\ Cadence Johnson (crj2121) \\ Michele Lin (ml3706) \\ Nivita Arora (na2464) \\}
-
-\date{December 20th, 2017}
-
 \begin{document}
-\maketitle
+
+% ~~~~~~~~~~~~ TITLE PAGE ~~~~~~~~~~~~ %
+\begin{titlepage}
+\centering
+\vspace*{\baselineskip}
+\rule{\textwidth}{1.6pt}\vspace*{-\baselineskip}\vspace*{2pt}
+%\rule{\textwidth}{0.4pt}
+\newline \newline
+%{\fontsize{20}{30}\selectfont THE ENGLISH LANGUAGE\\ LANGUAGE\\}
+{\LARGE THE ENGLISH LANGUAGE\\ LANGUAGE\\}
+\vspace{0.75\baselineskip}
+%\rule{\textwidth}{0.4pt}\vspace*{-\baselineskip}\vspace{3.2pt}
+\rule{\textwidth}{1.6pt}
+\vspace{2\baselineskip}
+\vspace*{3\baselineskip}
+
+{\scshape\large Rabia Akhtar (ra2805) \\ Emily Bau (eb3029) \\ Cadence Johnson (crj2121) \\ Michele Lin (ml3706) \\ Nivita Arora (na2464) \\}
+
+\vfill
+
+{\scshape\large December 20th, 2017}
+
+\end{titlepage}
+
+% ~~~~~~~~~~~~ TABLE OF CONTENTS ~~~~~~~~~~~~ %
 \newpage
 \tableofcontents
-\newpage
 
+% ~~~~~~~~~~~~ 1) INTRODUCTION ~~~~~~~~~~~~ %
+\newpage
 \section{Introduction}
 \subsection{What is The English Language Language?}
 
@@ -43,16 +63,17 @@ In 2010, nearly one out of three college students across the United States repor
 \newline \newline
 The English Language language solves problems specific to document manipulation and data extrapolation. In traditionally utilized languages, it is often difficult to write scripts that can analyze multiple documents quickly, and can cross-compare them. Storing a document itself is tough, but on top of that, being able to compare multiple documents at once is very rare. Our unique language provides core file manipulation operations and storage structures, which allow us to mine statistics that will check for plagiarism between given documents, as well as other tasks related to document manipulation. This is especially useful for teaching, grading, publishing, and other such projects and work. We hope to facilitate the efforts of teachers and publishers by offering them this service that will allow them to check for plagiarism quickly and easily, without having to peruse hundreds of documents manually.
 
-\newpage
 
+% ~~~~~~~~~~~~ 2) USAGE ~~~~~~~~~~~~ %
+\newpage
 \section{Usage}
-This is a brief overview on how to use our language, including writing, compiling, and running your .ell program. \newline
+This is a brief overview on how to use our language, including writing, compiling, and running your ELL program. \newline
 
 \subsection{Getting Started}
-First, download the language project folder onto your local system. In your terminal, move into this directory, and then move further into the \textit{english-llvm} subdirectory. You are all set to start running your own ELL programs!
+First, download the language project folder onto your local system. In your terminal, move into this directory, and then move further into the {\ttfamily\texttt{english-llvm}} subdirectory. You are all set to start running your own ELL programs!
 
 \subsection{Writing Your Program}
-Create a new file using your favorite text editor, with the extension \textit{.ell}. As a demonstration, let us start with a simple "Hello World" program, named helloworld.ell. Here is what the program looks like: \newline
+Create a new file using your favorite text editor, with the extension {\ttfamily\texttt{.ell}}. As a demonstration, let us start with a simple "Hello World" program, named {\ttfamily\texttt{helloworld.ell}}. Here is what the program looks like: \newline
 \begin{lstlisting}[language=C]
 // helloworld.ell
 int main() {
@@ -62,11 +83,13 @@ int main() {
 \end{lstlisting}
 
 \subsection{Compiling}
-Make sure you are in the \textit{eng-lang-master/english-llvm} directory. Type the command \textit{make} in your terminal window, which will generate our ELL compiler. Then, run the following command in your shell:
+Make sure you are in the {\ttfamily\texttt{eng-lang-master/english-llvm}} directory. Type the command {\ttfamily\texttt{make}} in your terminal window, which will generate our ELL compiler. Then, run the following command in your shell:
 \begin{lstlisting}[language=bash]
  \$ 
 \end{lstlisting}
 
+
+% ~~~~~~~~~~~~ 3) LANGUAGE TUTORIAL ~~~~~~~~~~~~ %
 \newpage
 \section{Language Tutorial}
 Now we can get started with writing more complicated programs. The English Language language allows for various data types, structures, functions, and other such implementations. Here we will give an overview of each one, as well as sample code to demonstrate its usage.
@@ -96,11 +119,135 @@ ELL utilizes several library functions, including strcmp(), open(), and close().
 if (strcmp(words[1], words[2]) == 0)
 \end{lstlisting}
 
+
+% ~~~~~~~~~~~~ 4) LRM ~~~~~~~~~~~~ %
 \newpage
 \section{Language Reference Manual}
-[insert initial LRM, add additional features, library functions]
+\subsection{Lexical Elements}
+{\scshape Identifiers} \newline
+Identifiers are used for naming Docs and other data types. They are defined by at least one lowercase letter and can be followed by any combination of letters, numbers, or underscores. \newline \newline
+
+\noindent{\scshape Reserved Keywords} \newline
+\begin{center}
+\begin{tabular}{ c c c c }
+ int & boolean & float & string \\ 
+ char & void & struct & file\_ptr \\
+ while & for & if & else \\
+ return & print & print\_string
+ 
+\end{tabular}
+\end{center}
+\newline
+
+\noindent{\scshape Literals} \newline
+Integer literal: a series of one or more digits from 0-9 \newline
+Float literal: a series of digits followed by a ‘.’ character and another series of digits. Must have digits either preceding or following the ‘.’ \newline
+Boolean literal: a value of either ‘true’ or ‘false’ \newline
+String literal: a series of one or more characters \newline
+
+\noindent{\scshape Operators} \newline
+\begin{center}
+\begin{tabular}{ l l }
+ +, -, *, /, \% & arithmetic integer operators \\ 
+ ==, <, >, <=, >= & numerical integer operators \\
+ ||, \&\&, ! & logical operators \\
+ = & assignment
+\end{tabular}
+\end{center}
+
+\noindent{\scshape Delimiters} \newline
+Parentheses: used to contain arguments in function calls, as well as to ensure precedence in expressions \newline
+Semicolon: end of statement \newline
+Curly braces: used to enclose block logic in conditionals and loops, as well as to contain code in functions
+Commas: used to separate inputs in function calls \newline
+
+\noindent{\scshape Whitespace} \newline
+Whitespace is only used to separate tokens. \newline
+
+\noindent{\scshape Comments} \newline
+Single line comments are started with // and multiple line comments are started with /* and */
+
+\subsection{Data Types}
+\noindent{\scshape Primitive Data Types} \newline
+Integers: most numbers will be declared as type {\ttfamily\texttt{int}}. Example:
+\begin{lstlisting}[language=C]
+int x = 5
+\end{lstlisting}
+Floats: floating point numbers will be declared as type {\ttfamily\texttt{float}}. Example:
+\begin{lstlisting}[language=C]
+float x = 2.3
+\end{lstlisting}
+Booleans: boolean values will be declared as type {\ttfamily\texttt{bool}} and can be either True or False. Example:
+\begin{lstlisting}[language=C]
+bool match = True
+\end{lstlisting}
+\ \\
+\noindent{\scshape Non-Primitive Data Types} \newline
+Strings: strings are defined by the type {\ttfamily\texttt{string}}. They will be defined with two double quotes as shown, {\ttfamily\texttt{“ ”}}. Example:
+\begin{lstlisting}[language=C]
+string intro = "Hello World"
+\end{lstlisting}
+String operations: \newline
+{\ttfamily\texttt{strlen(a)}} returns the number of characters in {\ttfamily\texttt{string a}} \newline
+{\ttfamily\texttt{strcat(a, b)}} appends {\ttfamily\texttt{string b}} to the end of {\ttfamily\texttt{string a}} \newline
+{\ttfamily\texttt{strcpy(a, b)}} copies contents of {\ttfamily\texttt{string b}} into {\ttfamily\texttt{string a}} \newline
+{\ttfamily\texttt{strget(a, i)}} gets character in {\ttfamily\texttt{string a}} at {\ttfamily\texttt{int i}} \newline
+{\ttfamily\texttt{to\_lower(a)}} returns {\ttfamily\texttt{string a}} in all lowercase characters \newline
+{\ttfamily\texttt{strcmp(b)}} compares {\ttfamily\texttt{string a}} to {\ttfamily\texttt{string b}} and returns 0 if they are equal, a negative integer if {\ttfamily\texttt{a}} < {\ttfamily\texttt{b}}, and a positive integer if {\ttfamily\texttt{a}} > {\ttfamily\texttt{b}} \newline \newline
+Structures: structures are defined by the type {\ttfamily\texttt{struct}}. Structure names should begin with a capital letter. Example:
+\begin{lstlisting}[language=C]
+struct Object = {
+    int x;
+    char y;
+}
+\end{lstlisting}
+Arrays: arrays are a collection of any other data type, and can be defined by simply typing the data type followed by an open and close bracket, optionally containing the number of elements in between, and the brackets are then followed by the name of the array. Example:
+\begin{lstlisting}[language=C]
+string [5] a;
+\end{lstlisting}
+File pointers: file pointers are defined by the type {\ttfamily\texttt{file\_ptr}}, and point to a an opened text file. Example:
+\begin{lstlisting}[language=C]
+file_ptr fp = open(file, "rb");
+\end{lstlisting}
+\ \\
+\noindent{\scshape Functions} \newline
+Built-in Functions: functions predefined in the compiler. In ELL, these are: \newline
+{\ttfamily\texttt{print()}} prints to the screen any data type passed as an argument \newline
+{\ttfamily\texttt{print\_string()}} prints to the screen an argument of type {\ttfamily\texttt{string}} \newline
+{\ttfamily\texttt{open()}} opens a text file by passing in the file name as type {\ttfamily\texttt{string}} as the first argument, and the read/write conditions as the second argument \newline
+{\ttfamily\texttt{close()}} closes a text file by passing in its file pointer of type {\ttfamily\texttt{file\_ptr}} as an argument \newline \newline
+User-defined Functions: these functions are defined and called as follows:
+\begin{lstlisting}[language=C]
+return_type function_name(<args>) {
+    ...
+    return return_type;
+}
+
+function_name(<args>);
+\end{lstlisting} \ \\
+\noindent{\scshape Control Flow Statements} \newline
+Conditionals:
+\begin{lstlisting}[language=C]
+if (<bool>) {
+    <expr>
+}
+else {
+    <expr>
+}
+\end{lstlisting}
+Loops:
+\begin{lstlisting}[language=C]
+for (int i=0; i<5; i=i+1) {
+    <expr>
+}
+while (<bool>) {
+    <expr>
+}
+
+\end{lstlisting}
 
 
+% ~~~~~~~~~~~~ 5) PROJECT PLAN ~~~~~~~~~~~~ %
 \newpage
 \section{Project Plan}
 \subsection{Process}
@@ -108,76 +255,16 @@ As a team, we started from Stephen Edwards' MicroC compiler shown in class. Afte
 
 \subsection{Project Timeline}
 
+
+% ~~~~~~~~~~~~ 6) ARCHITECTURE ~~~~~~~~~~~~ %
 \newpage
 \section{Architectural Design}
-Our compiler begins with the source code, passes that through the scanner and tokenizes it. This output is then passed through a parser, from which an abstract syntax tree is constructed. Then, the semantic analyzer checks the semantics of the program to detect any issues in structures, declarations, arguments, etc., and then passes that output through the code generator. Finally, this output is translated into LLVM code.
-\subsection{scanner.mll}
-\begin{lstlisting}[language=Caml]
-(* Ocamllex scanner for MicroC *)
+Our compiler begins with the source code, passes that through the scanner and tokenizes it. This output is then passed through a parser, from which an abstract syntax tree is constructed. Then, the semantic analyzer checks the semantics of the program to detect any issues in structures, declarations, arguments, etc., and then passes that output through the code generator. Finally, this output is translated into LLVM code. \newline
 
-{ open Parser }
+[block diagram of compiler]
 
-rule token = parse
-  [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
-| "/*"     { comment lexbuf }           (* Comments *)
-| '('      { LPAREN }
-| ')'      { RPAREN }
-| '{'      { LBRACE }
-| '}'      { RBRACE }
-| '['      { LBRACK}
-| ']'      { RBRACK}
-| ';'      { SEMI }
-| ','      { COMMA }
-| '+'      { PLUS }
-| '-'      { MINUS }
-| '*'      { TIMES }
-| '/'      { DIVIDE }
-| "++"     { INCREMENT }
-| "--"     { DECREMENT }
-| '='      { ASSIGN }
-| "=="     { EQ }
-| "!="     { NEQ }
-| '<'      { LT }
-| "<="     { LEQ }
-| ">"      { GT }
-| ">="     { GEQ }
-| "&&"     { AND }
-| "||"     { OR }
-| '.'      { DOT }
-| "!"      { NOT }
-| "if"     { IF }
-| "else"   { ELSE }
-| "for"    { FOR }
-| "while"  { WHILE }
-| "return" { RETURN }
-| "int"    { INT }
-| "float"  { FLOAT }
-| "bool"   { BOOL }
-| "void"   { VOID }
-| "true"   { TRUE }
-| "false"  { FALSE }
-| "string" { STRING }
-| "array"  { ARRAY }
-| "char"   { CHAR }
-| "file_ptr" { STRING }
-| "struct" { STRUCT }
-| ['0'-'9']+ as lxm { NUM_LIT(int_of_string lxm) }
-| ['0'-'9']+'.'['0'-'9']* | ['0'-'9']*'.'['0'-'9']+ 
-	as lxm { FLOAT_LIT(float_of_string lxm)}
-| '"' (([^ '"'] | "\\\"")* as strlit) '"' { STRING_LIT(strlit) } 
-| '''([' '-'!' '#'-'[' ']'-'~' ]|['0'-'9'])''' as lxm {CHAR_LITERAL( String.get lxm 1)}
-| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
-| eof { EOF }
-| _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
-and comment = parse
-  "*/" { token lexbuf }
-| _    { comment lexbuf }
-\end{lstlisting}
-
-\subsection{parser.mly}
-[insert all other important files into separate subsections]
-
+% ~~~~~~~~~~~~ 7) TESTS ~~~~~~~~~~~~ %
 \newpage
 \section{Test Plan}
 Here we demonstrate three programs written in ELL that demonstrate most of the functionalities of our language.
@@ -474,12 +561,267 @@ int main(){
 }
 \end{lstlisting}
 
+
+% ~~~~~~~~~~~~ 8) LESSONS ~~~~~~~~~~~~ %
 \newpage
 \section{Lessons Learned}
 [lessons learned and future advice from each team member]
 
+
+% ~~~~~~~~~~~~ 9) APPENDIX ~~~~~~~~~~~~ %
 \newpage
 \section{Appendix}
-[code listing of translator with each module signed by its author]
+\subsection{scanner.mll}
+\begin{lstlisting}[language=Caml]
+(* Ocamllex scanner for MicroC *)
+
+{ open Parser }
+
+rule token = parse
+  [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
+| "/*"     { comment lexbuf }           (* Comments *)
+| '('      { LPAREN }
+| ')'      { RPAREN }
+| '{'      { LBRACE }
+| '}'      { RBRACE }
+| '['      { LBRACK}
+| ']'      { RBRACK}
+| ';'      { SEMI }
+| ','      { COMMA }
+| '+'      { PLUS }
+| '-'      { MINUS }
+| '*'      { TIMES }
+| '/'      { DIVIDE }
+| "++"     { INCREMENT }
+| "--"     { DECREMENT }
+| '='      { ASSIGN }
+| "=="     { EQ }
+| "!="     { NEQ }
+| '<'      { LT }
+| "<="     { LEQ }
+| ">"      { GT }
+| ">="     { GEQ }
+| "&&"     { AND }
+| "||"     { OR }
+| '.'      { DOT }
+| "!"      { NOT }
+| "if"     { IF }
+| "else"   { ELSE }
+| "for"    { FOR }
+| "while"  { WHILE }
+| "return" { RETURN }
+| "int"    { INT }
+| "float"  { FLOAT }
+| "bool"   { BOOL }
+| "void"   { VOID }
+| "true"   { TRUE }
+| "false"  { FALSE }
+| "string" { STRING }
+| "array"  { ARRAY }
+| "char"   { CHAR }
+| "file_ptr" { STRING }
+| "struct" { STRUCT }
+| ['0'-'9']+ as lxm { NUM_LIT(int_of_string lxm) }
+| ['0'-'9']+'.'['0'-'9']* | ['0'-'9']*'.'['0'-'9']+ 
+	as lxm { FLOAT_LIT(float_of_string lxm)}
+| '"' (([^ '"'] | "\\\"")* as strlit) '"' { STRING_LIT(strlit) } 
+| '''([' '-'!' '#'-'[' ']'-'~' ]|['0'-'9'])''' as lxm {CHAR_LITERAL( String.get lxm 1)}
+| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
+| eof { EOF }
+| _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
+
+and comment = parse
+  "*/" { token lexbuf }
+| _    { comment lexbuf }
+\end{lstlisting}
+
+\subsection{parser.mly}
+\begin{lstlisting}[language=C]
+/* Ocamlyacc parser for MicroC */
+
+%{
+open Ast
+
+let fst (a,_,_) = a;;
+let snd (_,b,_) = b;;
+let trd (_,_,c) = c;;
+
+%}
+
+%token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA
+%token PLUS MINUS TIMES DIVIDE ASSIGN NOT DECREMENT INCREMENT
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR DOT
+
+%token RETURN IF ELSE FOR WHILE INT FLOAT BOOL VOID LENGTH 
+%token INT CHAR FLOAT BOOL VOID STRING OF STRUCT TRUE FALSE LINDEX RINDEX
+%token <int> NUM_LIT
+%token <float> FLOAT_LIT
+%token <string> STRING_LIT
+%token <char> CHAR_LITERAL
+%token <string> ID
+%token EOF
+
+%nonassoc NOELSE
+%nonassoc ELSE
+%right ASSIGN 
+
+%left OR
+%left AND
+%left EQ NEQ 
+%left LT GT LEQ GEQ
+%left PLUS MINUS
+%left TIMES DIVIDE
+%left DOT 
+%right NOT NEG
+%left LINDEX
+
+%start program
+%type <Ast.program> program
+
+%%
+
+program:
+  decls EOF { $1 }
+
+decls:
+   /* nothing */ { [], [], [] }
+ | decls vdecl { ($2 :: fst $1), snd $1, trd $1 }
+ | decls fdecl { fst $1, ($2 :: snd $1), trd $1 }
+ | decls sdecl { fst $1, snd $1, ($2 :: trd $1) }
+
+fdecl:
+   typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+     { { typ = $1;
+	 fname = $2;
+	 formals = $4;
+	 locals = List.rev $7;
+	 body = List.rev $8 } }
+
+formals_opt:
+    /* nothing */ { [] }
+  | formal_list   { List.rev $1 }
+
+formal_list:
+    typ ID                   { [($1,$2)] }
+  | formal_list COMMA typ ID { ($3,$4) :: $1 }
+
+dtyp:
+  INT { Int }
+| STRING {String}
+| FLOAT {Float}
+| CHAR {Char}
+
+atyp:
+  dtyp dim_list { Array($1, $2) }
+
+typ:
+    dtyp { Simple($1)}
+  | atyp { $1 }
+  | BOOL { Bool }
+  | VOID { Void}
+  | STRUCT ID { Struct ($2) }
+
+dim_list:
+  LSQUARE RSQUARE { 1 }
+| LSQUARE RSQUARE dim_list { 1 + $3 }
+
+
+
+index:
+| LINDEX expr RINDEX { $2}
+
+vdecl_list:
+    /* nothing */    { [] }
+  | vdecl_list vdecl { $2 :: $1 }
+
+vdecl:
+    typ ID SEMI             { VarDecl($1, $2, Noexpr) }
+  | typ ID ASSIGN expr SEMI { VarDecl($1, $2, $4) }
+
+
+sdecl:
+    STRUCT ID LBRACE vdecl_list RBRACE SEMI
+      { 
+        { sname = $2;
+          sformals = $4;
+      } 
+    }
+
+stmt_list:
+    /* nothing */  { [] }
+  | stmt_list stmt { $2 :: $1 }
+
+stmt:
+    expr SEMI { Expr $1 }
+  | RETURN SEMI { Return Noexpr }
+  | RETURN expr SEMI { Return $2 }
+  | LBRACE stmt_list RBRACE { Block(List.rev $2) }
+  | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
+  | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7) }
+  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
+     { For($3, $5, $7, $9) }
+  | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+
+
+expr_opt:
+    /* nothing */ { Noexpr }
+  | expr          { $1 }
+
+id:
+  ID               { Id($1) }
+
+val_list:
+    expr                { [ $1 ] }
+  | expr COMMA val_list { [ $1 ] @ $3 }
+
+simple_arr_literal:
+    LSQUARE val_list RSQUARE { $2 }
+
+
+expr:
+    NUM_LIT          { NumLit($1) }
+  | FLOAT_LIT        { FloatLit($1) }
+  | STRING_LIT       { StringLit($1) }
+  | CHAR_LITERAL     { CharLit($1)}
+  | simple_arr_literal { ArrayLit($1)}
+  | expr index       { Index($1, [$2]) }
+  | TRUE             { BoolLit(true) }
+  | FALSE            { BoolLit(false) }
+  | ID              { Id($1) }
+  | id INCREMENT   { Pop($1, Inc) }
+  | id DECREMENT   { Pop($1, Dec) }
+  | expr PLUS   expr { Binop ($1, Add,   $3) }
+  | expr MINUS  expr { Binop ($1, Sub,   $3) }
+  | expr TIMES  expr { Binop ($1, Mult,  $3) }
+  | expr DIVIDE expr { Binop ($1, Div,   $3) }
+  | expr EQ     expr { Binop ($1, Equal, $3) }
+  | expr NEQ    expr { Binop ($1, Neq,   $3) }
+  | expr LT     expr { Binop ($1, Less,  $3) }
+  | expr LEQ    expr { Binop ($1, Leq,   $3) }
+  | expr GT     expr { Binop ($1, Greater, $3) }
+  | expr GEQ    expr { Binop ($1, Geq,   $3) }
+  | expr AND    expr { Binop ($1, And,   $3) }
+  | expr OR     expr { Binop ($1, Or,    $3) }
+  | MINUS expr %prec NEG { Unop(Neg, $2) }
+  | NOT expr         { Unop(Not, $2) }
+  | expr ASSIGN expr   { Assign($1, $3) }
+  | expr DOT ID   { Dot($1,        $3) }
+  | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
+  | ID LSQUARE expr RSQUARE {ArrayAccess($1, $3)}
+  | LPAREN expr RPAREN { $2 }
+
+
+actuals_opt:
+    /* nothing */ { [] }
+  | actuals_list  { List.rev $1 }
+
+actuals_list:
+    expr                    { [$1] }
+  | actuals_list COMMA expr { $3 :: $1 }
+
+\end{lstlisting}
+
+[full code listing as separate subsections with authors as a comment on top]
+
 
 \end{document}
