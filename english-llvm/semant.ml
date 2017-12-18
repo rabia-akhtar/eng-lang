@@ -337,6 +337,19 @@ let check (globals, functions, structs) =
                           | Simple(String) -> Simple(String)
                           | _ -> raise (Failure ("Entity being indexed ('" ^ string_of_expr a ^"') cannot be array")))
       | Id s -> type_of_identifier s
+      | ArrayAssign(v, i, e) as ex -> let type_of_left_side = 
+                                      if string_of_typ(expr (List.hd i)) != string_of_typ(Simple(Int))
+                                      then raise ( Failure("Array index ('" ^ string_of_expr (List.hd i) ^ "') is not an integer") )
+                                      else 
+                                        let type_of_entity = type_of_identifier v in
+                                        (match type_of_entity with
+                                           Array(d, _) -> Simple(d)
+                                         | _ -> raise (Failure ("Entity being indexed ('" ^ v ^"') cannot be array"))) in
+                                      let type_of_right_side = expr e in
+                                      check_type type_of_left_side type_of_right_side 
+                                      (Failure ("illegal assignment " ^ string_of_typ type_of_left_side ^
+                                                " = " ^ string_of_typ type_of_right_side ^ " in " ^ 
+                                                string_of_expr ex))
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
 	       (match op with
            Add | Sub | Mult | Div when t1 = A.Simple(A.Int) && t2 = A.Simple(A.Int) -> A.Simple(A.Int)

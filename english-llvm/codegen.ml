@@ -289,6 +289,12 @@ let struct_field_indices =
                            ignore (L.build_store new_array second_store builder);
                            let actual_literal = L.build_load new_literal "actual_arr_literal" builder in
                            actual_literal
+      | A.ArrayAssign(v, i, e) -> let e' = expr builder g_map l_map e in 
+                                  let i' = expr builder g_map l_map (List.hd i) in
+                                  let v' = L.build_load (lookup g_map l_map v) v builder in 
+                                  let extract_array = L.build_extractvalue v' 1 "extract_ptr" builder in
+                                  let extract_value = L.build_gep extract_array [| i' |] "extract_value" builder in
+                                  ignore (L.build_store e' extract_value builder); e'
       | A.Index(a, i) -> let a' = expr builder g_map l_map a in 
                          let i' = expr builder g_map l_map (List.hd i) in
                          let extract_array = L.build_extractvalue a' 1 "extract_ptr" builder in

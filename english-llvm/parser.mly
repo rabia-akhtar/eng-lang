@@ -168,7 +168,7 @@ expr:
   | expr ASSIGN expr   { Assign($1, $3) }
   | expr DOT ID   { Dot($1,        $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
-  | ID LSQUARE expr RSQUARE {ArrayAccess($1, $3)}
+  | ID LSQUARE expr RSQUARE ASSIGN expr { ArrayAssign($1, [$3], $6) }
   | LPAREN expr RPAREN { $2 }
 
 
