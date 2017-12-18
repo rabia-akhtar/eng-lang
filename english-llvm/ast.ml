@@ -36,6 +36,7 @@ type expr =
   | Pop of expr * pop 
   | Assign of expr * expr
   | ArrayAccess of string * expr 
+  | ArrayAssign of string * expr list * expr
   | Call of string * expr list
   | Dot of expr * string
   | Noexpr
@@ -116,6 +117,7 @@ let rec string_of_expr = function
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
   | ArrayAccess(s,e2) -> (s) ^ "[" ^ (string_of_expr e2) ^ "]"
+  | ArrayAssign(v, l, e) -> v ^ "[" ^ string_of_expr (List.hd l) ^ "]" ^ " = " ^ string_of_expr e
 
 let rec string_of_stmt = function
     Block(stmts) ->
