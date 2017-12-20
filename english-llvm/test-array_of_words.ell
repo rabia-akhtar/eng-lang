@@ -1,0 +1,98 @@
+
+int test2(string a, int words){
+
+  int i = 0;
+  int len = strlen(a);
+  int start = 0;
+  string b;
+  string temp = calloc(1,30);
+  int j;
+  int w = 0;
+  string [] word_s = [""];
+  int [] freq = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  int indice =0;
+  int present = 0;
+  int k;
+  int h;
+  print_string("FIRST PRINT");
+  print(freq{|0|});
+  print(freq{|100|});
+
+  for(i = 0; i<len; i++){
+    b = calloc(1,2);
+    b = string_at(a,i,b);
+    if(strcmp(b, " ") == 0){
+      for(j = start; j <i; j++){
+      b = string_at(a,j,b);
+        if(strcmp(b,".") != 0){
+        strcat(temp, b);
+        }
+      }
+
+      k = 0;
+      while(k<indice && present== 0){
+          print_string("HERE WE ARE");
+          print(k); 
+          print_string(word_s{|k|});
+          if(strcmp(word_s{|k|}, temp) == 0){
+          print_string("YES");
+          
+          print_string("THIS IS A NUMBER");
+          print(freq{|k|});
+          present = 1;
+          print_string("FIRST PRINT");
+          print(freq{|0|});
+          }
+
+          k++;
+      }
+
+      print_string(temp);
+      if(present == 0){
+      word_s[indice] = calloc(1,20);
+      freq[indice] = 1;
+      strcpy(word_s{|indice|}, temp);
+      print_string("PUT IN ARRAY");
+      print(indice);
+      print_string(word_s{|indice|});
+      indice++;
+      }
+      present = 0;
+      free(temp);
+      temp = calloc(1,30);
+      start = i+1;
+    }
+
+    free(b);
+    print_string("FIRST PRINT");
+    print(freq{|0|});
+    }
+    print_string("FIRST PRINT");
+    print(freq{|0|});
+
+
+    print_string("FINAL PRINT");
+    for(h = 0; h<indice; h++){
+
+    print_string("index");
+    print_string(word_s{|h|});
+    print(h);
+    print(freq{|h|});
+
+  }
+
+
+
+  return 0;
+}
+
+int main() {
+  string [] test;
+  int i;
+  string g = "hi emily bau emily candace kim emily";
+  test = ["hi","hello","there"];
+  i = word_count(g);
+  print_string("THIS IS NEW");
+  test2(g, i);
+  return 0;
+}
