@@ -121,9 +121,9 @@ int word_count(char * str){
 }
 
 char * string_at(char* str, int i, int size, int len){
-  char a = str[i];
-  char * buf = calloc(size,len);
-  *buf = a;
+  char char_string[2] = {str[i] , '\0'};
+  char * buf = calloc(size, len);
+  buf = strcpy(buf, char_string);
   return buf;
 }
 
