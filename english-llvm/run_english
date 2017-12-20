@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-CODE=$1
+INPUT=$1
+CODE=$(echo $INPUT| cut -f 1 -d '.')
 
 ./english.native < $CODE.ell > $CODE.ll
 /usr/local/opt/llvm/bin/llc $CODE.ll > $CODE.s
