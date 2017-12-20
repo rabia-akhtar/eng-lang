@@ -1,0 +1,40 @@
+
+int test2(string a, int words){
+  int i;
+  int len = strlen(a);
+  int start = 0;
+  string b;
+  string temp = calloc(1,30);
+  int j;
+  int w = 0;
+  
+  for(i = 0; i<len; i++){
+    b = calloc(1,2);
+    b = string_at(a,i,b);
+    if(strcmp(b, " ") == 0){
+      j = start;
+      for(j = start; j <i; j++){
+      b = string_at(a,j,b);
+        strcat(temp, b);
+
+      }
+
+      print_string(temp);
+      free(temp);
+      temp = calloc(1,30);
+      start = i+1;
+      print(i);
+    }
+    free(b);
+  }
+  return 0;
+}
+int main() {
+  string [] test;
+  int i;
+  string g = "this is a test right now";
+  test = ["hi","hello","there"];
+  i = word_count(g);
+  test2(g, i);
+  return 0;
+}

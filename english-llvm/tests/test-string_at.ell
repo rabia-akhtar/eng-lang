@@ -1,13 +1,9 @@
 int main()
 {
-<<<<<<< HEAD
+
   string a;
   string b = "plt!";
   a = string_at(b, 2, 3, 1);
-=======
-  string b = "plt!";
-  string a = string_at(b, 2, 30, 1);
->>>>>>> 4500e7defcf5b0b885b14af311bfdd8e79cf1adb
   print_string(a);
   free(a);
   return 0;
