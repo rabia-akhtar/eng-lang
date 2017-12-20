@@ -1,7 +1,7 @@
 int main()
 {
-  float i = 1.0;
-  float j = 2.0;
+  double i = 1.0;
+  double j = 2.0;
   i++;
   j--;
   print_float(i);

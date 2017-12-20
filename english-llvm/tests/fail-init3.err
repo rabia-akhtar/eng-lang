@@ -1,2 +1,2 @@
-Fatal error: exception Failure("illegal initialization ofint = float in int a=1.;
+Fatal error: exception Failure("illegal initialization ofint = double in int a=1.;
 ")

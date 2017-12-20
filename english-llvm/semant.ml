@@ -88,7 +88,7 @@ let check (globals, functions, structs) =
   (* check all reserved function names *)
   check_func_decl "printb";
   check_func_decl "printbig";
-  check_func_decl "print_float";
+  check_func_decl "print_double";
   check_func_decl "print_all";
   check_func_decl "open";
   check_func_decl "close";
@@ -163,8 +163,8 @@ let check (globals, functions, structs) =
      { typ = Void; fname = "printbig"; formals = [(A.Simple(A.Int), "x")];
        locals = []; body = [] }
 
-        (StringMap.add "print_float"
-     { typ = Void; fname = "print_float"; formals = [(A.Simple(A.Float), "x")];
+        (StringMap.add "print_double"
+     { typ = Void; fname = "print_double"; formals = [(A.Simple(A.Float), "x")];
        locals = []; body = [] }
 
        (StringMap.add "print_all"

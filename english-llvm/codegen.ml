@@ -413,7 +413,7 @@ let struct_field_indices =
           L.build_call word_count_func (Array.of_list x) "word_count" builder
       | A.Call("string_at", e) -> let x = List.rev (List.map (expr builder g_map l_map) (List.rev e)) in
           L.build_call string_at_func (Array.of_list x) "string_at" builder
-      | A.Call ("print_float", [e]) ->
+      | A.Call ("print_double", [e]) ->
             L.build_call printf_func [| float_format_str builder ; (expr builder g_map l_map e) |] "printf" builder
       | A.Call ("print_string", [e]) ->
              L.build_call printf_func [| string_format_str builder ; (expr builder g_map l_map e) |] "printf" builder

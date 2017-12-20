@@ -135,7 +135,7 @@ let rec string_of_stmt = function
 let string_of_d_typ = function
   Int -> "int"
 | String -> "string"
-| Float -> "float"
+| Float -> "double"
 | Char -> "char"
 
 let rec repeat c = function
