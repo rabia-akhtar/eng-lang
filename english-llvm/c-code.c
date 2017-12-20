@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-
+#include <stdlib.h>
 /*
  * Font information: one byte per row, 8 rows per character
  * In order, space, 0-9, A-Z
@@ -120,8 +120,9 @@ int word_count(char * str){
   return count;
 }
 
-char * string_at(char* str, int i, char * buf){
+char * string_at(char* str, int i, int size, int len){
   char a = str[i];
+  char * buf = calloc(size,len);
   *buf = a;
   return buf;
 }

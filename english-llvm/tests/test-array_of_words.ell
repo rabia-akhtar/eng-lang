@@ -3,8 +3,9 @@ int test2(string a, int words){
   int i;
   int len = strlen(a);
   int start = 0;
-  string b = calloc(1,2);
-  string temp = calloc(1,15);
+  string x;
+  string b;
+  string temp;
   string [] word_s = [""];
   int j;
   int w = 0;
@@ -15,44 +16,39 @@ int test2(string a, int words){
 
 /* iterate through string by character */
   for(i = 0; i<len; i++){
-    b = string_at(a,i,b);
-
+    temp = calloc(30,1);
+    x = string_at(a,i,30, 1);
     /* if end of word, build previous word */
-    if(strcmp(b, " ") == 0){
+    if(strcmp(x, " ") == 0){
       j = start;
-      for(j = start; j <i; j++){
-        b = string_at(a,j,b);
+      for(; j < i; j++){
+        b = string_at(a,j, 30, 1);
         strcat(temp, b);
+        free(b);
       }
-
       /* put word in array */
-      word_s [indice] = calloc(1, 15);
+      word_s [indice] = calloc(30, 1);
       strcpy(word_s{|indice|}, temp);
-      indice++;
-
-      strcpy(temp, "");
+      indice++;   
       start = i+1;
-
     }
-    strcpy(b,"");
+    free(x); 
   }
-
     /* print array of words*/
-    for(h = 0; h<indice; h++){
-    print_string("index");
-    print_string(word_s{|h|});
-    print(h);
-  }
-
-  free(b);
-  free(temp);
-  return 0;
+    for(h = 0; h < indice; h++){
+      print_string("index");
+      print_string(word_s{|h|});
+      print(h);
+      free(word_s{|h|});
+    }
+    free(temp);   
+    return 0;
 }
 
 int main() {
   string [] test;
   int i;
-  string g = "emilyyy this is here right now is ji test right now";
+  string g = "emilyy this here is a WORKING TEST now";
   i = word_count(g);
   test2(g, i);
   return 0;

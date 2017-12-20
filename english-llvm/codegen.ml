@@ -139,7 +139,7 @@ let struct_field_indices =
   let word_count_t = L.function_type i32_t [| p_t |] in 
   let word_count_func = L.declare_function "word_count" word_count_t the_module in
 
-  let string_at_t = L.function_type p_t [| p_t; i32_t ;p_t |] in 
+  let string_at_t = L.function_type p_t [| p_t; i32_t; i32_t; i32_t|] in 
   let string_at_func = L.declare_function "string_at" string_at_t the_module in
 
   (* Declare heap storage function *)

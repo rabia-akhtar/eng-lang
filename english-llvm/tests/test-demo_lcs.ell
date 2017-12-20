@@ -30,10 +30,8 @@ struct LongestC lcs(string a, string b){
 	/* iterate to find longest substring */
 	for (i = 0; i< a_s; i ++) {
 		for (j = 0; j < b_s; j++){
-			x = calloc(1,2);
-			y = calloc(1,2);
-			x = string_at(a, i, x);
-			y = string_at(b, j, y);
+			x = string_at(a, i, 1 , 2);
+			y = string_at(b, j, 1, 2);
 			temp = calloc(1, a_s);
 			if (strcmp(x, y) == 0){
 				a_t = i;
@@ -41,10 +39,8 @@ struct LongestC lcs(string a, string b){
 				while(equal == 1 && a_t< a_s && b_t< b_s){
 					free(x);
 					free(y);
-					x = calloc(1,2);
-					y = calloc(1,2);
-					x = string_at(a, a_t, x);
-					y = string_at(b, b_t, y);	
+					x = string_at(a, a_t, 1, 2);
+					y = string_at(b, b_t, 1, 2);	
 					if (strcmp(x, y) == 0){
 						strcat(temp, x);
 						count++;
