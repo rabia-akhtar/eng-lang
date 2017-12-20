@@ -1,11 +1,9 @@
 int main()
 {
-  
-  string a = calloc(1, 2);
+  string a;
   string b = "plt!";
-  a = string_at(b, 2, a);
+  a = string_at(b, 2, 3, 1);
   print_string(a);
   free(a);
   return 0;
-
 }

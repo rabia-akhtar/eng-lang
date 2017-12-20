@@ -1,24 +1,29 @@
-int test2(string a, int words){
+/* this demo code reads in a text document and finds the topic words in the file */
 
+/* function builds array of topic words */
+int main_topics(string a){
+
+  /* set variables */
   int i;
   int len = strlen(a);
   int start = 0;
   string x;
   string b;
   string temp;
-  string [] word_s = [""];
-  int [] freq = [0,1,2,0,4,5,6,3,2,2,4,5,6,9,743,2,3,1];
+  string [] topics = [""];
   int j;
   int w = 0;
   int indice =0;
   int present = 0;
   int k;  
   int h;
+  int l;
 
 /* iterate through string by character */
   for(i = 0; i<len; i++){
     temp = calloc(30,1);
     x = string_at(a,i,30, 1);
+
     /* if end of word, build previous word */
     if(strcmp(x, " ") == 0){
       j = start;
@@ -30,45 +35,41 @@ int test2(string a, int words){
         free(b);
       }
 
-      k = 0;
-      while(k<indice && present== 0){
-         
-          if(strcmp(word_s{|k|}, temp) == 0){
-
-          present = 1;
-          
-          }
-
-          k++;
+      /* put word in array if not a stop word*/
+      if(is_stop_word(temp) == 0){
+      topics [indice] = calloc(30, 1);
+      strcpy(topics{|indice|}, temp); 
+      indice++;
       }
-
-      /* put word in array */
-      if(present == 0){
-      word_s [indice] = calloc(30, 1);
-      freq[indice] = 0;
-      strcpy(word_s{|indice|}, temp);
-      indice++;   
-      }
-      present = 0;
       start = i+1;
     }
     free(x); 
   }
-    /* print array of words*/
+
+    /* print array of topic words */
     for(h = 0; h < indice; h++){
-      print_string("index");
-      print_string(word_s{|h|});
-      free(word_s{|h|});
+      print_string(topics{|h|});
+      free(topics{|h|});
     }
+
     free(temp);   
     return 0;
 }
 
+/* function takes in filepath, reads in text and returns string */
+string read_Essay(string file){
+   string s1 = calloc(1, 2000);
+   file_ptr fp = open(file, "rb");
+   int size = read(s1, 1, 2000, fp);
+   close(fp);
+   return s1;
+}
+
 int main() {
-  string [] test;
   int i;
-  string g = "emily is here cool hi there hello there hi he ji";
-  i = word_count(g);
-  test2(g, i);
+  string essay;
+  essay = read_Essay("tests/essay1.txt");
+  main_topics(essay);
+  free(essay);
   return 0;
 }

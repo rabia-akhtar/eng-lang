@@ -54,9 +54,8 @@ struct LongestC lcs(string a, string b){
 					
 				}
 
-				if (count >longest){
+				if (count > result.L_count){
 					result.L_count = count;
-					longest = count;
 					strcpy(result.L_string, temp);
 				
 				}
