@@ -2,7 +2,7 @@ int foo() {}
 
 void bar() {}
 
-int print_float() {} /* Should not be able to define this function */
+int print_double() {} /* Should not be able to define this function */
 
 void baz() {}
 
