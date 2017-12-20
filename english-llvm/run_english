@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+CODE=$1
+
+./english.native < $CODE.ell > $CODE.ll
+/usr/local/opt/llvm/bin/llc $CODE.ll > $CODE.s
+cc -o $CODE.exe $CODE.s c-code.o
+./$CODE.exe
+
+
