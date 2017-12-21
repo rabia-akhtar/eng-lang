@@ -79,7 +79,6 @@ string read_Essay(string file){
    int size = read(s1, 1, 2000, fp);
    close(fp);
    return s1;
-
 }
 
 int main()
